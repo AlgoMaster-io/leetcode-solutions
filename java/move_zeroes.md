@@ -25,6 +25,7 @@ public class Solution {
         }
     }
 }
+```
 
 ## Approach 2: Two-Pointer Technique
 ### Solution
@@ -48,6 +49,7 @@ public class Solution {
         }
     }
 }
+```
 
 ## Approach 3: Optimal Two-Pointer with Swapping
 
@@ -71,3 +73,4 @@ public class Solution {
         }
     }
 }
+```
