@@ -73,25 +73,21 @@ class Solution:
 class Solution:
     def longestPalindromeSubseq(self, s: str) -> int:
         n = len(s)
-        dp = [0] * n
+        dp = [1] * n
         prevDp = [0] * n
-
-        # Every single character is a palindrome of length 1
-        for i in range(n):
-            dp[i] = 1
 
         # Check subproblems of increasing lengths
         for length in range(2, n + 1):
             for start in range(n - length + 1):
                 end = start + length - 1
-                temp = dp[start] # Preserve current value before overwriting
+                temp = dp[start]  # Preserve current value before overwriting
 
                 if s[start] == s[end]:
                     dp[start] = prevDp[start + 1] + 2
                 else:
                     dp[start] = max(dp[start + 1], prevDp[start])
 
-                prevDp[start] = temp # Update prevDp for the next iteration
+                prevDp[start] = temp  # Update prevDp for the next iteration
 
         # Result is in dp[0]
         return dp[0]
