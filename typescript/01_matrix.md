@@ -11,9 +11,9 @@ typescript
 function updateMatrix(mat: number[][]): number[][] {
     const rows = mat.length;
     const cols = mat[0].length;
-    const distances: number[][] = Array.from({ length: rows }, () => Array(cols).fill(0));
-    const visited: boolean[][] = Array.from({ length: rows }, () => Array(cols).fill(false));
-    const queue: number[][] = [];
+    const distances = Array.from({ length: rows }, () => Array(cols).fill(0));
+    const visited = Array.from({ length: rows }, () => Array(cols).fill(false));
+    const queue: [number, number][] = [];
 
     // Step 1: Initialize the queue with all '0' cells and mark them as visited
     for (let i = 0; i < rows; i++) {
@@ -28,14 +28,20 @@ function updateMatrix(mat: number[][]): number[][] {
     // Step 2: Perform BFS to calculate distances
     const directions = [[0, 1], [1, 0], [0, -1], [-1, 0]];
     while (queue.length > 0) {
-        const current = queue.shift()!;
+        const [currentRow, currentCol] = queue.shift()!;
         for (const dir of directions) {
-            const newRow = current[0] + dir[0];
-            const newCol = current[1] + dir[1];
+            const newRow = currentRow + dir[0];
+            const newCol = currentCol + dir[1];
 
             // Check bounds and if the cell is not visited
-            if (newRow >= 0 && newRow < rows && newCol >= 0 && newCol < cols && !visited[newRow][newCol]) {
-                distances[newRow][newCol] = distances[current[0]][current[1]] + 1;
+            if (
+                newRow >= 0 &&
+                newRow < rows &&
+                newCol >= 0 &&
+                newCol < cols &&
+                !visited[newRow][newCol]
+            ) {
+                distances[newRow][newCol] = distances[currentRow][currentCol] + 1;
                 queue.push([newRow, newCol]);
                 visited[newRow][newCol] = true;
             }
