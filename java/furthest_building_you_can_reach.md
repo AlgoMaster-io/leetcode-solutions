@@ -1,2 +1,36 @@
-# furthest_building_you_can_reach.md
+# 1642. [Furthest Building You Can Reach](https://leetcode.com/problems/furthest-building-you-can-reach/)
 
+## Approach 1: Max-Heap to Track Largest Jumps
+
+### Solution
+```java
+// Time Complexity: O(n * log(k)), where n is the number of buildings and k is the number of jumps stored in the heap
+// Space Complexity: O(k), where k is the size of the heap
+import java.util.PriorityQueue;
+
+public class Solution {
+    public int furthestBuilding(int[] heights, int bricks, int ladders) {
+        PriorityQueue<Integer> minHeap = new PriorityQueue<>(); // Min-heap to store ladder-replaced jumps
+
+        for (int i = 0; i < heights.length - 1; i++) {
+            int climb = heights[i + 1] - heights[i];
+            
+            if (climb > 0) {
+                minHeap.add(climb); // Add the climb to the heap
+
+                // If the number of climbs exceeds the number of ladders, use bricks for the smallest jump
+                if (minHeap.size() > ladders) {
+                    bricks -= minHeap.poll();
+                }
+
+                // If bricks are exhausted, return the current building index
+                if (bricks < 0) {
+                    return i;
+                }
+            }
+        }
+
+        return heights.length - 1; // If all buildings are reachable
+    }
+}
+```
