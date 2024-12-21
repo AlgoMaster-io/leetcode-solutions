@@ -1,2 +1,0 @@
-# word_ladder.md
-
