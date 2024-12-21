@@ -1,138 +1,85 @@
-# Container With Most Water
-You are given an integer array height of length n. There are n vertical lines drawn such that the two endpoints of the i-th line are (i, 0) and (i, height[i]).
+# [Leetcode 11: Container With Most Water](https://leetcode.com/problems/container-with-most-water/)
 
-Find two lines that together with the x-axis form a container, such that the container contains the most water.
+## Approaches
+1. [Brute Force Solution](#brute-force-solution)
+2. [Two Pointers Approach](#two-pointers-approach)
 
-Return the maximum amount of water a container can store.
+### Brute Force Solution
 
-### Constraints:
-- n == height.length
-- 2 <= n <= 10^5
-- 0 <= height[i] <= 10^4
+#### Intuition
+In the brute force approach, we can consider every pair of lines and calculate the amount of water they can contain. This can be done by iterating over all possible pairs of lines and calculating the area for each pair. Although this approach is straightforward, it is not efficient because it evaluates every possible pair which results in a quadratic time complexity.
 
-### Examples
-```javascript
-Input: height = [1,8,6,2,5,4,8,3,7]
-Output: 49
-Explanation: The vertical lines are drawn at indices 0, 1, 2, ..., 8.
-The two lines that form the container are at indices 1 and 8. The area of the container is (8 - 1) * min(8, 7) = 49.
+#### Algorithm
+1. Initialize `max_area` to 0.
+2. Use a nested loop where the outer loop selects the first line and the inner loop selects the second line.
+3. For each pair of lines, calculate the area using the formula: `min(height[i], height[j]) * (j - i)`.
+4. Update `max_area` with the maximum of its current value and the calculated area.
+5. Return `max_area`.
 
-Input: height = [1,1]
-Output: 1
-```
+#### Code
 
-## Approaches to Solve the Problem
-### Approach 1: Brute Force (Inefficient)
-##### Intuition:
-A brute-force solution involves checking the area formed by every pair of lines. The area between two lines at positions i and j is given by:
-```Area = (j - i) * min(height[i], height[j])```
-
-Steps:
-1. Use two nested loops to consider every possible pair of lines.
-2. For each pair of lines, calculate the area of water the container can hold.
-3. Track the maximum area found.
-##### Time Complexity:
-O(n²), where n is the length of the array. This approach checks all possible pairs of lines.
-##### Space Complexity:
-O(1), no extra space is used beyond a few variables.
-##### Python Code:
 ```python
-def maxArea(height: List[int]) -> int:
+def max_area_brute_force(height):
     max_area = 0
     n = len(height)
     
+    # Try all possible pairs to calculate the maximum area
     for i in range(n):
         for j in range(i + 1, n):
-            area = (j - i) * min(height[i], height[j])
+            # Calculate the area with height of the shorter line as the limiting height
+            area = min(height[i], height[j]) * (j - i)
             max_area = max(max_area, area)
     
     return max_area
 ```
-### Approach 2: Two Pointers (Optimal Solution)
-##### Intuition: 
-To improve efficiency, we can use the two-pointer technique. The idea is to place one pointer at the beginning (left) and another at the end (right) of the array. Then, we calculate the area and move the pointer that has the smaller height because the width is already maximized, and we want to find a taller line that may increase the area.
 
-1. The area between two lines is determined by the shorter of the two lines and the distance between them.
-2. By moving the shorter line inward, we have a chance of finding a taller line that might increase the area.
+#### Complexity Analysis
+- **Time Complexity**: \(O(n^2)\) where \(n\) is the number of lines. This is due to the nested loops over the input array.
+- **Space Complexity**: \(O(1)\) because we are using only a constant amount of space to store variables.
 
-Steps:
-1. Initialize two pointers, left at the beginning and right at the end of the array.
-2. While left is less than right, calculate the area between the two lines.
-3. Move the pointer pointing to the shorter line inward, because only moving the shorter line could potentially increase the area.
-4. Track the maximum area found.
-##### Visualization:
-```perl
-For height = [1,8,6,2,5,4,8,3,7]:
+### Two Pointers Approach
 
-Initial pointers:
-left = 0 (height[0] = 1)
-right = 8 (height[8] = 7)
+#### Intuition
+The two pointers technique optimizes the solution by using the fact that the area is limited by the shorter of the two lines. By starting with two pointers at the beginning and end of the array, we can gradually move towards the center, trying to find a configuration that can provide a larger area with each step. When we move the shorter of the two lines inward, we have a chance to increase the area because we are increasing the distance between the two lines while potentially finding a taller line.
 
-Iteration 1:
-Area = (8 - 0) * min(1, 7) = 8
-Move the left pointer to the right since height[0] < height[8].
+#### Algorithm
+1. Initialize two pointers, `left` at 0 and `right` at the last index.
+2. Initialize `max_area` to 0.
+3. While `left` is less than `right`:
+   - Calculate `width` as the difference between `right` and `left`.
+   - Calculate `area` as `min(height[left], height[right]) * width`.
+   - Update `max_area` if the calculated area is greater.
+   - Move the pointer pointing to the shorter line inward:
+     - If `height[left]` is less than `height[right]`, increment `left`.
+     - Otherwise, decrement `right`.
+4. Continue the above process till `left` is not less than `right`.
+5. Return `max_area`.
 
-Iteration 2:
-left = 1 (height[1] = 8), right = 8 (height[8] = 7)
-Area = (8 - 1) * min(8, 7) = 49
-Move the right pointer to the left since height[8] < height[1].
+#### Code
 
-Continue until the pointers meet.
-...
-
-Continue until all triplets are checked.
-```
-##### Time Complexity:
-O(n), where n is the length of the array. We traverse the array once.
-##### Space Complexity:
-O(1), as we use only two pointers and a few variables.
-##### Python Code:
 ```python
-def maxArea(height: List[int]) -> int:
+def max_area_two_pointers(height):
     left, right = 0, len(height) - 1
     max_area = 0
     
+    # Use two pointers narrowing approach
     while left < right:
-        # Calculate the area between the lines at left and right
+        # Calculate width and area
         width = right - left
-        current_height = min(height[left], height[right])
-        area = width * current_height
+        area = min(height[left], height[right]) * width
+        # Update max_area
         max_area = max(max_area, area)
         
-        # Move the pointer pointing to the shorter line
+        # Move the pointer of the shorter line
         if height[left] < height[right]:
             left += 1
         else:
             right -= 1
-    
+        
     return max_area
 ```
-##### Visualization:
-```perl
-For height = [1,8,6,2,5,4,8,3,7]:
 
-Step 1:
-left = 0, right = 8
-Calculate Area = (8 - 0) * min(1, 7) = 8
+#### Complexity Analysis
+- **Time Complexity**: \(O(n)\) because we only need to scan the array once with two pointers.
+- **Space Complexity**: \(O(1)\) since we do not use any additional data structures and only a constant amount of space is required for variables.
 
-Step 2:
-Move the left pointer to the right, left = 1
-Calculate Area = (8 - 1) * min(8, 7) = 49 (New Max)
-
-Step 3:
-Move the right pointer to the left, right = 7
-Continue calculating and moving pointers until left = right.
-
-Final max area: 49
-```
-##### Edge Cases
-1. Two elements: If the array has only two elements, the solution should handle this case directly, as the only area possible is the product of the two heights and the distance between them.
-2. All elements are the same height: If all elements in the array have the same height, the algorithm should return the area as the product of the first and last element's height and their distance.
-3. Array with zero heights: The array may contain zeros, and the solution should correctly handle these cases as no water can be trapped between two zero heights.
-
-| Approach                         | Time Complexity | Space Complexity |
-|-----------------------------------|-----------------|------------------|
-| Brute Force	                    | O(n²)      | O(1)             |
-| Two Pointers	                          | O(n)            | O(1)             |
-
-The Two Pointers approach is the most optimal solution as it efficiently reduces the problem to a linear scan, avoiding the need for checking every pair of lines, and uses constant space.

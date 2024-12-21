@@ -1,118 +1,67 @@
-# Daily Temperatures
-Given a list of daily temperatures temperatures, return a list answer such that for each day in the input, answer[i] is the number of days you would have to wait until a warmer temperature. If there is no future day for which this is possible, put 0 instead.
+## [Daily Temperatures - Leetcode 739](https://leetcode.com/problems/daily-temperatures/)
 
-### Constraints:
-- 1 <= temperatures.length <= 10^5
-- 30 <= temperatures[i] <= 100
+### Approaches:
+1. [Brute Force](#brute-force)
+2. [Stack Based Solution](#stack-based-solution)
 
-### Examples
-```javascript
-Input: temperatures = [73,74,75,71,69,72,76,73]
-Output: [1,1,4,2,1,1,0,0]
+### Brute Force
 
-Input: temperatures = [30,40,50,60]
-Output: [1,1,1,0]
+#### Intuition:
+The simplest way to solve this problem is to use a brute-force approach where, for each day, we iterate over the subsequent days to find out when the next warmer temperature occurs.
 
-Input: temperatures = [30,60,90]
-Output: [1,1,0]
-```
+#### Implementation:
 
-## Approaches to Solve the Problem
-### Approach 1: Brute Force (Inefficient)
-##### Intuition:
-The brute-force approach involves checking every temperature for each day to find the next warmer day. For each day i, scan the remaining days to find the first day where the temperature is higher.
-
-Steps:
-1. For each day i, start a nested loop to search through the following days j > i.
-2. If a day j is found where temperatures[j] > temperatures[i], calculate the difference j - i and store it in the result.
-3. If no warmer day is found, store 0 for that day.
-##### Time Complexity:
-O(n²), where n is the number of days. For each day, we search all the following days, making this approach inefficient for large inputs.
-##### Space Complexity:
-O(n) for storing the result array.
-##### Python Code:
 ```python
 def dailyTemperatures(temperatures):
-    n = len(temperatures)
-    answer = [0] * n
+    n = len(temperatures)  # Length of the temperatures list
+    answer = [0] * n  # Initialize the answer with all zeros
     
-    for i in range(n):
-        for j in range(i + 1, n):
-            if temperatures[j] > temperatures[i]:
-                answer[i] = j - i
-                break
-    
+    for i in range(n):  # Iterate over each day
+        for j in range(i + 1, n):  # Check subsequent days
+            if temperatures[j] > temperatures[i]:  # If a warmer temperature is found
+                answer[i] = j - i  # Calculate the days difference
+                break  # Break the inner loop since we've found the day we needed
+                
     return answer
 ```
 
-### Approach 2: Stack (Optimal Solution)
-##### Intuition: 
-A more efficient solution can be achieved using a monotonic decreasing stack. The idea is to traverse the array from left to right while maintaining a stack of indices of the temperatures. The stack helps keep track of temperatures that we haven't found a warmer day for yet. When we find a warmer temperature, we calculate the difference in days and store the result.
+#### Time Complexity:
+- **O(n^2)** where `n` is the number of days, because for each day we might have to check all subsequent days.
 
-- The stack stores indices of temperatures in decreasing order.
-- When a warmer temperature is found (i.e., temperatures[i] > temperatures[stack[-1]]), we pop the stack, calculate the difference, and store it in the result array.
+#### Space Complexity:
+- **O(1)** extra space, not including the space needed for the output.
 
-Steps:
-1. Initialize an empty stack and an array answer filled with 0's.
-2. Traverse the array from left to right.
-3. For each day i, check if the current temperature is higher than the temperature at the index stored in the stack.
-   - If true, pop the index from the stack, calculate i - stack[-1] as the number of days until a warmer temperature, and update the result.
-   - Repeat until the stack is empty or the temperature at the top of the stack is higher.
-4. Push the current index i onto the stack.
-5. Continue until the array is fully processed.
-### Visualization
-For temperatures = [73, 74, 75, 71, 69, 72, 76, 73]:
+### Stack Based Solution
 
-```rust
-Start with empty stack.
+#### Intuition:
+The stack-based approach uses a monotonic decreasing stack to keep track of temperatures. For each day, we pop from the stack until we find a day with a higher temperature or the stack becomes empty. This approach leverages the Last-In-First-Out nature of stacks to efficiently find the next warmer day.
 
-Step 1: 
-Index 0 (73): No warmer day yet → push 0 onto the stack.
-Stack: [0]
+#### Implementation:
 
-Step 2: 
-Index 1 (74): Warmer than 73 → pop 0, set answer[0] = 1 → push 1 onto the stack.
-Stack: [1]
-
-Step 3: 
-Index 2 (75): Warmer than 74 → pop 1, set answer[1] = 1 → push 2 onto the stack.
-Stack: [2]
-
-...
-
-Final result: [1, 1, 4, 2, 1, 1, 0, 0]
-```
-##### Time Complexity:
-O(n), where n is the number of days. Each index is pushed and popped from the stack at most once.
-##### Space Complexity:
-O(n), for the stack and the result array.
-##### Python Code:
 ```python
 def dailyTemperatures(temperatures):
-    n = len(temperatures)
-    answer = [0] * n
-    stack = []
+    n = len(temperatures)  # Length of the temperatures list
+    answer = [0] * n  # Initialize the answer with all zeros
+    stack = []  # This stack will store indices of the temperatures
     
-    for i, temp in enumerate(temperatures):
-        # While the stack is not empty and we have found a warmer temperature
-        while stack and temperatures[stack[-1]] < temp:
-            prev_index = stack.pop()
-            answer[prev_index] = i - prev_index
+    for current_day in range(n):
+        current_temp = temperatures[current_day]  # Get the temperature for the current day
         
-        # Push the current index onto the stack
-        stack.append(i)
-    
+        # While the stack is not empty and the current day's temperature is greater
+        # than the temperature at the top index of the stack
+        while stack and temperatures[stack[-1]] < current_temp:
+            previous_day = stack.pop()  # Get the index of the previous day that was cooler
+            answer[previous_day] = current_day - previous_day  # Calculate the days difference
+            
+        # Push the current day's index onto the stack
+        stack.append(current_day)
+        
     return answer
 ```
-### Edge Cases:
-1. Single Element: If the input array has only one element, the result should be [0], since there are no future days.
-2. All Decreasing Temperatures: If the temperatures are in strictly decreasing order, the result will be all 0's because there is no warmer day for any of the elements.
-3. All Increasing Temperatures: The result will be [1, 1, 1, ..., 0] since each day has the next day as a warmer day.
-## Summary
 
-| Approach                         | Time Complexity | Space Complexity |
-|-----------------------------------|-----------------|------------------|
-| Brute Force                        | O(n²)      | O(n)             |
-| Stack (Optimal Solution)                          | O(n)            | O(n)             |
+#### Time Complexity:
+- **O(n)**, because each index is pushed and popped from the stack at most once.
 
-The Stack approach is the most efficient solution, leveraging a monotonic stack to keep track of indices and efficiently calculate the number of days until a warmer temperature. This solution runs in linear time and is optimal for the input size constraints.
+#### Space Complexity:
+- **O(n)** in the worst case, due to the stack storing all indices when temperatures are strictly decreasing.
+

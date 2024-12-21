@@ -1,190 +1,114 @@
-# Minimum Window Substring
-Given two strings s and t of lengths m and n respectively, return the minimum window substring of s such that every character in t (including duplicates) is included in the window. If there is no such substring, return the empty string "".
+# [LeetCode Problem 76: Minimum Window Substring](https://leetcode.com/problems/minimum-window-substring/)
 
-### Constraints:
-- 1 <= s.length, t.length <= 10^5
-- s and t consist of uppercase and lowercase English letters.
+## Approaches
+- [Brute Force Approach](#brute-force-approach)
+- [Sliding Window Approach](#sliding-window-approach)
 
-### Examples
-```javascript
-Input: s = "ADOBECODEBANC", t = "ABC"
-Output: "BANC"
-Explanation: The minimum window substring is "BANC".
+## Brute Force Approach
 
-Input: s = "a", t = "a"
-Output: "a"
-Explanation: The entire string `s` is the minimum window.
+### Intuition
+The brute force approach involves trying every possible substring in `s` and checking if it contains all characters of `t`. If it does, you compare the length of this substring with the current minimum length and update it accordingly. This approach is straightforward but inefficient due to its exhaustive nature.
 
-Input: s = "a", t = "aa"
-Output: ""
-Explanation: Since `t` contains two 'a' characters but the string `s` contains only one, it is impossible to form the desired substring.
-```
+### Approach
+1. Iterate over all possible starting points of substrings in `s`.
+2. For each starting point, iterate to form substrings and check if they contain all characters in `t`.
+3. Count the occurrences of each character in the substrings and in `t`.
+4. Compare the substring length to find the minimal substring meeting the conditions.
 
-### Follow-up:
-Could you find an algorithm that runs in O(m + n) time?
-
-## Approaches to Solve the Problem
-### Approach 1: Brute Force (Inefficient)
-##### Intuition:
-A brute-force solution would be to generate all possible substrings of s and check if they contain all characters of t. This approach is inefficient for large strings due to the huge number of substrings.
-
-Steps:
-1. Loop over all possible substrings of s.
-2. For each substring, check if it contains all the characters of t by using a frequency map.
-3. Track the minimum window that contains all characters of t.
-##### Time Complexity:
-O(m² * n), where m is the length of s and n is the length of t. We check every substring of s and compare it with t.
-##### Space Complexity:
-O(m + n), for the substring and character frequency maps.
-##### Python Code:
+### Code
 ```python
-from collections import Counter
-
 def minWindow(s: str, t: str) -> str:
-    if not s or not t:
+    if not t or not s:
         return ""
-    
-    min_len = float('inf')
+
+    def contains_all(s_count, t_count):
+        for char in t_count:
+            if s_count.get(char, 0) < t_count[char]:
+                return False
+        return True
+
+    min_length = float('inf')
     min_window = ""
+    t_count = {}
     
-    for i in range(len(s)):
-        for j in range(i + 1, len(s) + 1):
-            substring = s[i:j]
-            if all(substring.count(char) >= t.count(char) for char in t):
-                if len(substring) < min_len:
-                    min_len = len(substring)
-                    min_window = substring
-    
+    # Count occurrences of each character in t
+    for char in t:
+        t_count[char] = t_count.get(char, 0) + 1
+
+    for start in range(len(s)):
+        s_count = {}
+        for end in range(start, len(s)):
+            char = s[end]
+            s_count[char] = s_count.get(char, 0) + 1
+            if contains_all(s_count, t_count):
+                window_length = end - start + 1
+                if window_length < min_length:
+                    min_length = window_length
+                    min_window = s[start:end + 1]
+                break
+
     return min_window
 ```
-### Approach 2: Sliding Window with Two Pointers (Optimal Solution)
-##### Intuition: 
-The optimal solution involves using the sliding window technique with two pointers, left and right, along with character frequency maps. The idea is to expand the window by moving right to include characters until the window contains all characters from t. Then, we shrink the window by moving left to try and minimize the window size while still keeping all required characters.
 
-Steps:
-1. Create a frequency map for t to know how many of each character is needed.
-2. Use two pointers (left and right) to represent the window in s.
-3. Expand the window by moving right until all characters in t are included in the window.
-4. Once the window contains all required characters, shrink the window by moving left to minimize its size.
-5. Track the smallest valid window encountered.
-##### Visualization:
-```perl
-For s = "ADOBECODEBANC" and t = "ABC":
+### Complexity
+- **Time Complexity**: \(O(n^3)\), where \(n\) is the length of the string `s`. This complexity arises because for every start position, we are traversing the string and counting characters.
+- **Space Complexity**: \(O(n + m)\), where \(n\) is the size of `s` and `m` is the size of `t`.
 
-Initial state: left = 0, right = 0, valid = False
-Step 1: Expand window → right = 5, window = "ADOBEC" (valid window)
-Step 2: Shrink window → left = 3, window = "BEC" (valid and smaller window)
-Continue expanding and shrinking until the minimum valid window is found.
-```
-##### Time Complexity:
-O(m + n), where m is the length of s and n is the length of t. We scan the string s once and use a frequency map to manage the window.
-##### Space Complexity:
-O(n), where n is the number of unique characters in t, because we use a frequency map.
-##### Python Code:
+## Sliding Window Approach
+
+### Intuition
+The sliding window approach is a more optimal solution. The idea is to use two pointers to create a window within the string `s` that can be adjusted as we look for the minimum length window that contains all characters in `t`. As characters are added to the window, we check if all required characters are included; if they are, we try to shrink the window to find a smaller valid window.
+
+### Approach
+1. Use two pointers, `left` and `right`, both starting at the beginning of `s`.
+2. Expand the window by moving `right` and tracking characters.
+3. Once a valid window is found (when all characters in `t` are present), attempt to shrink it by moving `left`.
+4. Keep track of the minimum window found.
+
+### Code
 ```python
 from collections import Counter
 
 def minWindow(s: str, t: str) -> str:
-    if not s or not t:
+    if not t or not s:
         return ""
     
-    # Step 1: Create a frequency map for t
     t_count = Counter(t)
-    required = len(t_count)  # Number of unique characters in t that need to be in the window
+    current_count = {}
+    required = len(t_count)
+    formed = 0
     
-    # Step 2: Initialize the sliding window variables
     left, right = 0, 0
-    window_count = {}
-    formed = 0  # Number of unique characters in the current window that match the frequency in t
-    min_len = float('inf')
+    min_length = float('inf')
     min_window = (0, 0)
     
-    # Step 3: Expand the window by moving the right pointer
     while right < len(s):
         char = s[right]
-        window_count[char] = window_count.get(char, 0) + 1
-        
-        # Check if the current character matches the frequency in t
-        if char in t_count and window_count[char] == t_count[char]:
+        current_count[char] = current_count.get(char, 0) + 1
+
+        if char in t_count and current_count[char] == t_count[char]:
             formed += 1
-        
-        # Step 4: Try to shrink the window by moving the left pointer
+
         while left <= right and formed == required:
-            char = s[left]
-            
-            # Update the minimum window
-            if right - left + 1 < min_len:
-                min_len = right - left + 1
+            if right - left + 1 < min_length:
+                min_length = right - left + 1
                 min_window = (left, right)
             
-            # Shrink the window
-            window_count[char] -= 1
-            if char in t_count and window_count[char] < t_count[char]:
+            # Try to contract the window
+            char = s[left]
+            current_count[char] -= 1
+            if char in t_count and current_count[char] < t_count[char]:
                 formed -= 1
             
             left += 1
-        
+
         right += 1
     
-    # Step 5: Return the result
     l, r = min_window
-    return s[l:r+1] if min_len != float('inf') else ""
+    return s[l:r+1] if min_length != float('inf') else ""
 ```
-### Approach 3: Optimized Sliding Window with Array Frequency Map
-##### Intuition: 
-For better performance in terms of space, we can use a fixed-size array instead of a hash map to track the frequency of characters. This approach works because we only deal with lowercase and uppercase English letters, which limits the possible characters to 52 (A-Z and a-z). By using an array of size 128 (to handle all ASCII characters), we can directly map characters to their indices.
 
-Steps:
-1. Use an array of size 128 to store the frequency of characters in t.
-2. Use the same array to track the characters in the current window of s.
-3. Slide the window using two pointers and compare the frequency of characters in the window with t.
-##### Time Complexity:
-O(m + n), where m is the length of s and n is the length of t.
-##### Space Complexity:
-O(1), since we use a fixed array of size 128 for character frequencies.
-##### Python Code:
-```python
-def minWindow(s: str, t: str) -> str:
-    if not s or not t:
-        return ""
-    
-    # Step 1: Create an array for the frequency of characters in t
-    t_count = [0] * 128
-    for char in t:
-        t_count[ord(char)] += 1
-    
-    # Step 2: Initialize sliding window variables
-    left, right, start = 0, 0, 0
-    min_len = float('inf')
-    required = len(t)
-    
-    # Step 3: Expand the window
-    while right < len(s):
-        if t_count[ord(s[right])] > 0:
-            required -= 1
-        
-        t_count[ord(s[right])] -= 1
-        right += 1
-        
-        # Step 4: Shrink the window
-        while required == 0:
-            if right - left < min_len:
-                min_len = right - left
-                start = left
-            
-            t_count[ord(s[left])] += 1
-            if t_count[ord(s[left])] > 0:
-                required += 1
-            
-            left += 1
-    
-    return s[start:start + min_len] if min_len != float('inf') else ""
-```
-## Summary
-| Approach                         | Time Complexity | Space Complexity |
-|-----------------------------------|-----------------|------------------|
-| Brute Force	                    | 	O(m² * n)      | O(m + n)             |
-| Sliding Window with Two Pointers		        | O(m + n)	            | O(n)             |
-| Optimized Sliding Window with Array		              | O(m + n)            | O(1)             |
+### Complexity
+- **Time Complexity**: \(O(n + m)\), where \(n\) is the length of `s` and \(m\) is the length of `t`. This is because we only have two pointers that traverse the string once.
+- **Space Complexity**: \(O(m + k)\), where \(m\) is the number of unique characters in `t`, and \(k\) is the number of unique characters in `s`. This is due to the `Counter` dictionaries used.
 
-The Sliding Window with Two Pointers is the most optimal and practical solution. The array-based frequency map can be a further optimization in terms of space for problems involving ASCII characters.

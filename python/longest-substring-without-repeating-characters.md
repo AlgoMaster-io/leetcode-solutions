@@ -1,155 +1,108 @@
-# Longest Substring Without Repeating Characters
-Given a string s, find the length of the longest substring without repeating characters.
+# Leetcode Problem: [Longest Substring Without Repeating Characters](https://leetcode.com/problems/longest-substring-without-repeating-characters/)
 
-### Constraints:
-- 0 <= s.length <= 5 * 10^4
-- s consists of English letters, digits, symbols, and spaces.
+## Approaches
+1. [Brute Force](#approach-1-brute-force)
+2. [Sliding Window with Set](#approach-2-sliding-window-with-set)
+3. [Sliding Window with HashMap and Optimal Complexity](#approach-3-sliding-window-with-hashmap-and-optimal-complexity)
 
-### Examples
-```javascript
-Input: s = "abcabcbb"
-Output: 3
-Explanation: The answer is "abc", with the length of 3.
+---
 
-Input: s = "bbbbb"
-Output: 1
-Explanation: The answer is "b", with the length of 1.
+## Approach 1: Brute Force
 
-Input: s = "pwwkew"
-Output: 3
-Explanation: The answer is "wke", with the length of 3. 
-Notice that the answer must be a substring, "pwke" is a subsequence and not a substring.
-```
+### Intuition
+The simplest approach involves checking every possible substring and determining if it contains all unique characters. This requires two nested loops: the outer loop to fix the starting character and the inner loop to consider all substrings starting from this character. For every substring, we can use a set to keep track of characters and validate uniqueness.
 
-## Approaches to Solve the Problem
-### Approach 1: Brute Force (Inefficient)
-##### Intuition:
-A simple brute-force solution is to check every possible substring, and for each substring, check if it contains duplicate characters. The maximum length of a substring without repeating characters is tracked.
+### Time Complexity
+- **Time:** O(n^3) due to generating all possible substrings and validating uniqueness for each.
+- **Space:** O(min(n, m)) where `m` is the character set size (typically 26 for lowercase English letters) for the set used to verify uniqueness.
 
-Steps:
-1. Use two nested loops to generate all possible substrings.
-2. For each substring, check if it contains duplicate characters by using a set or dictionary.
-3. Track the maximum length of substrings without duplicates.
-##### Time Complexity:
-O(n²) for checking all substrings and validating each one.
-##### Space Complexity:
-O(n) for storing characters in a set or dictionary while checking each substring.
-##### Python Code:
+### Solution
 ```python
 def lengthOfLongestSubstring(s: str) -> int:
-    max_len = 0
     n = len(s)
+    max_length = 0
     
+    # Iterate over each possible starting index
     for i in range(n):
-        seen = set()
+        seen_chars = set()
+        current_length = 0
+        
+        # Check each possible ending index for the substring starting at i
         for j in range(i, n):
-            if s[j] in seen:
+            if s[j] in seen_chars:
                 break
-            seen.add(s[j])
-            max_len = max(max_len, j - i + 1)
+            seen_chars.add(s[j])
+            current_length += 1
+        
+        # Update the maximum length found
+        max_length = max(max_length, current_length)
     
-    return max_len
+    return max_length
 ```
-### Approach 2: Sliding Window with Hash Set (Optimal)
-##### Intuition: 
-The brute-force approach is inefficient because it recalculates the substring from scratch each time. We can improve this by using a sliding window technique, where we keep track of the current substring using two pointers, left and right, and adjust the window as necessary. A hash set is used to track characters in the current window, allowing us to efficiently check for duplicates.
 
-1. Use two pointers (left and right) to create a window of characters.
-2. Expand the window by moving the right pointer.
-3. If a duplicate character is found, shrink the window from the left by moving the left pointer until the duplicate is removed.
-4. Track the maximum length of the window during this process.
+---
 
-Steps:
-1. Initialize a set to store the characters in the current window.
-2. Move the right pointer to expand the window.
-3. If the character at right is already in the set, move the left pointer to shrink the window until the character is removed.
-4. Keep updating the maximum length of the window.
-##### Visualization:
-```perl
-For s = "abcabcbb":
+## Approach 2: Sliding Window with Set
 
-Initial state: left = 0, right = 0, window = ""
-Step 1: Expand window to "a"
-Step 2: Expand window to "ab"
-Step 3: Expand window to "abc" (max_len = 3)
-Step 4: Encounter duplicate 'a', move left to 1 (window = "bca")
-Step 5: Expand window to "bcab" → encounter duplicate 'b', move left to 2 (window = "cab")
-Continue until the entire string is processed.
-```
-##### Time Complexity:
-O(n), where n is the length of the string. We traverse the string once with the sliding window.
-##### Space Complexity:
-O(min(n, m)), where n is the length of the string and m is the size of the character set (e.g., 26 for lowercase English letters).
-##### Python Code:
+### Intuition
+Instead of checking every possible substring, we can use the sliding window technique with two pointers. The goal is to maintain a window `[i, j)` (where `j` is not inclusive) of unique characters. If a duplicate character is found at `j`, we move the start of the window (`i`) to one past the first occurrence of the duplicate character.
+
+### Time Complexity
+- **Time:** O(2n) = O(n). In the worst case, each character will be visited twice.
+- **Space:** O(min(n, m)) for the set to maintain unique characters window.
+
+### Solution
 ```python
 def lengthOfLongestSubstring(s: str) -> int:
-    char_set = set()
-    left = 0
-    max_len = 0
+    n = len(s)
+    max_length = 0
+    seen_chars = set()
+    i = 0  # Left pointer of the window
     
-    for right in range(len(s)):
-        # Shrink the window if we encounter a duplicate character
-        while s[right] in char_set:
-            char_set.remove(s[left])
-            left += 1
-        
-        # Add the current character to the window
-        char_set.add(s[right])
-        
-        # Update the maximum length
-        max_len = max(max_len, right - left + 1)
+    # Iterate over each character with j as the right pointer
+    for j in range(n):
+        # Slide i to the right until duplicate character is removed
+        while s[j] in seen_chars:
+            seen_chars.remove(s[i])
+            i += 1
+        seen_chars.add(s[j])
+        max_length = max(max_length, j - i + 1)
     
-    return max_len
+    return max_length
 ```
-### Approach 3: Sliding Window with Hash Map
-##### Intuition: 
-A further optimization can be made by using a hash map to store the last index of each character. This allows us to move the left pointer directly to the position after the last occurrence of the duplicate character, rather than shrinking the window one character at a time.
 
-Steps:
-1. Initialize a hash map to store the last index of each character.
-2. Move the right pointer to expand the window.
-3. If a duplicate character is found, move the left pointer directly to the position after the last occurrence of the duplicate.
-4. Track the maximum length of the window.
-##### Visualization:
-```perl
-For s = "abcabcbb":
+---
 
-Initial state: left = 0, right = 0, window = "", last_occurrence = {}
-Step 1: Expand window to "a" → last_occurrence['a'] = 0
-Step 2: Expand window to "ab" → last_occurrence['b'] = 1
-Step 3: Expand window to "abc" → last_occurrence['c'] = 2
-Step 4: Encounter duplicate 'a', move left to 1 (after last 'a')
-Continue until the entire string is processed.
-```
-##### Time Complexity:
-O(n), as we still traverse the string once, but this time we move the left pointer more efficiently.
-##### Space Complexity:
-O(min(n, m)), where n is the length of the string and m is the size of the character set.
-##### Python Code:
+## Approach 3: Sliding Window with HashMap and Optimal Complexity
+
+### Intuition
+Enhancing the sliding window approach, we use a hashmap (dictionary) to store the last seen index of each character. When a duplicate character is encountered, we can jump the left pointer directly to the index after the last occurrence of this duplicate, thereby optimizing window advancement.
+
+### Time Complexity
+- **Time:** O(n) because each character is processed at most twice (once in and once out of the window).
+- **Space:** O(min(n, m)) where `m` is the character set size for the hashmap storing indices.
+
+### Solution
 ```python
 def lengthOfLongestSubstring(s: str) -> int:
     char_index_map = {}
-    left = 0
-    max_len = 0
+    max_length = 0
+    i = 0  # Start of the current window
     
-    for right in range(len(s)):
-        # If the character is already in the map, move the left pointer
-        if s[right] in char_index_map:
-            left = max(left, char_index_map[s[right]] + 1)
+    # Traverse the string with j as the right boundary of the window
+    for j, char in enumerate(s):
+        # If the character is already in the map, move the start to i + 1 after its last occurrence
+        if char in char_index_map:
+            i = max(char_index_map[char] + 1, i)
         
-        # Update the last occurrence of the current character
-        char_index_map[s[right]] = right
+        # Update the current window length
+        max_length = max(max_length, j - i + 1)
         
-        # Update the maximum length of the window
-        max_len = max(max_len, right - left + 1)
+        # Record the index of the current character
+        char_index_map[char] = j
     
-    return max_len
+    return max_length
 ```
-## Summary
-| Approach                         | Time Complexity | Space Complexity |
-|-----------------------------------|-----------------|------------------|
-| Brute Force	                    | 	O(n²)      | O(n)             |
-| Sliding Window with Hash Set		                   | O(n)            | O(min(n, m))             |
-| Sliding Window with Hash Map		                   | O(n)            | O(min(n, m))             |
 
-The Sliding Window with Hash Map is the most efficient approach because it uses a single pass over the string and minimizes the movement of the left pointer by jumping directly to the correct position.
+Using these approaches, we can iteratively optimize the solution from a brute force attempt to a linear time complexity solution utilizing the sliding window technique efficiently.
+

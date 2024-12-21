@@ -1,89 +1,122 @@
-# 78. [Subsets](https://leetcode.com/problems/subsets/)
+# [Leetcode 78: Subsets](https://leetcode.com/problems/subsets/)
 
-## Approach 1: Iterative (Power Set)
+## Approaches
 
-### Solution
+1. [Iterative Approach](#iterative-approach)
+2. [Recursive Backtracking Approach](#recursive-backtracking-approach)
+3. [Bit Manipulation Approach](#bit-manipulation-approach)
+
+### Iterative Approach
+
+**Intuition:**
+
+In the iterative method, one can generate each subset by adding one element from the given set to the existing subsets. We start with an initial empty subset and for each number in the input list, add it to each existing subset to create new subsets.
+
+**Detailed Steps:**
+
+1. Start with a list of subsets containing just the empty set.
+2. Iterate over each number in the input list.
+3. For each existing subset, create a new subset by adding the current number.
+4. Merge the newly created subsets with the existing ones.
+
 ```cpp
-// Time Complexity: O(n * 2^n), where n is the number of elements
-// Space Complexity: O(n * 2^n) for storing the subsets
-#include <vector>
+vector<vector<int>> subsets(vector<int>& nums) {
+    vector<vector<int>> subsets = {{}};
 
-class Solution {
-public:
-    std::vector<std::vector<int>> subsets(std::vector<int>& nums) {
-        std::vector<std::vector<int>> result;
-        result.push_back({}); // Start with the empty subset
+    // Iterating through each number in nums.
+    for (int num : nums) {
+        // For each number, we will add it to all the existing subsets.
+        int n = subsets.size();
+        for (int i = 0; i < n; ++i) {
+            // Create a new subset by adding the current number to the existing ones.
+            vector<int> new_subset = subsets[i];
+            new_subset.push_back(num);
+            subsets.push_back(new_subset);
+        }
+    }
 
-        for (int num : nums) {
-            int size = result.size();
-            for (int i = 0; i < size; i++) {
-                std::vector<int> subset = result[i];
-                subset.push_back(num); // Add the current number to each existing subset
-                result.push_back(subset);
+    return subsets;
+}
+```
+
+**Time Complexity:** `O(2^n * n)`  
+**Space Complexity:** `O(2^n * n)`
+
+### Recursive Backtracking Approach
+
+**Intuition:**
+
+The recursive approach utilizes backtracking to explore all possible subsets. It involves considering each element either included or excluded from the subset and recursively exploring these choices.
+
+**Detailed Steps:**
+
+1. Define a recursive function to add current subset to results.
+2. For each element, first include it in the current subset then exclude it, exploring both branches recursively.
+3. Base case: If we've iterated through all elements, add the current subset to results.
+
+```cpp
+void backtrack(int start, vector<int>& nums, vector<int>& current, vector<vector<int>>& subsets) {
+    // Add the current subset to the list of subsets.
+    subsets.push_back(current);
+
+    for (int i = start; i < nums.size(); ++i) {
+        // Include nums[i] in the current subset.
+        current.push_back(nums[i]);
+        // Move on to the next element.
+        backtrack(i + 1, nums, current, subsets);
+        // Exclude nums[i] from the current subset and backtrack.
+        current.pop_back();
+    }
+}
+
+vector<vector<int>> subsets(vector<int>& nums) {
+    vector<vector<int>> subsets;
+    vector<int> current;
+    backtrack(0, nums, current, subsets);
+    return subsets;
+}
+```
+
+**Time Complexity:** `O(2^n * n)`  
+**Space Complexity:** `O(n)`
+
+### Bit Manipulation Approach
+
+**Intuition:**
+
+Each subset corresponds to a binary number where each bit represents whether to include a particular element from the input set. By iterating from 0 to \(2^n - 1\), all possible combinations of the original set can be represented.
+
+**Detailed Steps:**
+
+1. Calculate the total number of subsets as \(2^n\).
+2. For each number from 0 to \(2^n - 1\):
+   - Use the binary bits of the number to decide inclusion of elements in subset.
+3. If a bit is set in the binary representation, include the corresponding element from the input list.
+
+```cpp
+vector<vector<int>> subsets(vector<int>& nums) {
+    int n = nums.size();
+    int subset_count = 1 << n;  // Total possible subsets = 2^n.
+    vector<vector<int>> subsets;
+
+    // Generate all possible subsets.
+    for (int i = 0; i < subset_count; ++i) {
+        vector<int> subset;
+        for (int j = 0; j < n; ++j) {
+            // If j-th bit is set in i, include nums[j] in the current subset.
+            if (i & (1 << j)) {
+                subset.push_back(nums[j]);
             }
         }
-
-        return result;
+        subsets.push_back(subset);
     }
-};
+
+    return subsets;
+}
 ```
 
-## Approach 2: Backtracking (Recursive Subset Generation)
+**Time Complexity:** `O(2^n * n)`  
+**Space Complexity:** `O(2^n * n)` 
 
-### Solution
-```cpp
-// Time Complexity: O(n * 2^n), where n is the number of elements
-// Space Complexity: O(n) for the recursion stack
-#include <vector>
-
-class Solution {
-public:
-    std::vector<std::vector<int>> subsets(std::vector<int>& nums) {
-        std::vector<std::vector<int>> result;
-        std::vector<int> current;
-        backtrack(nums, 0, current, result);
-        return result;
-    }
-
-private:
-    void backtrack(std::vector<int>& nums, int index, std::vector<int>& current, std::vector<std::vector<int>>& result) {
-        result.push_back(current); // Add the current subset to the result
-
-        for (int i = index; i < nums.size(); i++) {
-            current.push_back(nums[i]); // Include nums[i] in the current subset
-            backtrack(nums, i + 1, current, result); // Recurse with the next index
-            current.pop_back(); // Backtrack to explore other subsets
-        }
-    }
-};
-```
-
-## Approach 3: Bitmasking (Iterative Subset Generation)
-
-### Solution
-```cpp
-// Time Complexity: O(n * 2^n), where n is the number of elements
-// Space Complexity: O(n * 2^n) for storing the subsets
-#include <vector>
-
-class Solution {
-public:
-    std::vector<std::vector<int>> subsets(std::vector<int>& nums) {
-        std::vector<std::vector<int>> result;
-        int totalSubsets = 1 << nums.size(); // Total subsets = 2^n
-
-        for (int mask = 0; mask < totalSubsets; mask++) {
-            std::vector<int> subset;
-            for (int i = 0; i < nums.size(); i++) {
-                if ((mask & (1 << i)) != 0) {
-                    subset.push_back(nums[i]); // Include nums[i] in the subset
-                }
-            }
-            result.push_back(subset);
-        }
-
-        return result;
-    }
-};
-```
+All three methods have their own advantages and can be selected based on the situation or preference for recursion versus iteration. Bit manipulation is often considered elegant and compact, making it an interesting approach for those familiar with bitwise operations.
 

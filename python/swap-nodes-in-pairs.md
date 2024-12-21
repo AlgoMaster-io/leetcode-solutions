@@ -1,56 +1,16 @@
+# [Leetcode Problem 24: Swap Nodes in Pairs](https://leetcode.com/problems/swap-nodes-in-pairs/)
 
-# Swap Nodes in Pairs
-Given a linked list, swap every two adjacent nodes and return its head. You must solve the problem without modifying the values in the list's nodes (i.e., only nodes themselves may be changed).
+## Approaches
+- [Approach 1: Iterative Solution Using Swapping](#approach-1-iterative-solution-using-swapping)
+- [Approach 2: Recursive Solution](#approach-2-recursive-solution)
 
-### Constraints:
-- The number of nodes in the list is in the range [0, 100].
-- 0 <= Node.val <= 100.
+## Approach 1: Iterative Solution Using Swapping
 
-### Examples
-```javascript
-Input: head = [1,2,3,4]
-Output: [2,1,4,3]
+**Intuition:**
+- The problem asks us to swap every two adjacent nodes in a linked list. We will use an iterative approach for a simple and straightforward solution.
+- We'll iterate through the list and swap each pair of nodes by manipulating pointers.
 
-Input: head = []
-Output: []
-
-Input: head = [1]
-Output: [1]
-```
-
-## Approaches to Solve the Problem
-### Approach 1: Iterative Approach with Dummy Node (Optimal)
-##### Intuition:
-The iterative approach uses a dummy node to simplify handling edge cases, such as when swapping the first two nodes. We traverse the list and swap adjacent nodes in pairs by adjusting pointers. This method ensures we don’t modify the node values, but rather rearrange the actual nodes.
-
-- A dummy node simplifies edge cases when swapping the head node, allowing consistent pointer manipulations.
-- We maintain three pointers (prev, first, and second) to swap each pair of nodes.
-
-Steps:
-1. Create a dummy node that points to the head of the list.
-2. Set prev as the dummy node and start a loop where you check pairs of nodes (first and second).
-3. For each pair:
-   - Point prev.next to second.
-   - Swap the pointers between first and second so that they are reversed.
-   - Move the prev pointer to first (which is now after second) and continue.
-   - Return dummy.next as the new head of the list.
-##### Visualization:
-For head = [1, 2, 3, 4]:
-
-Initial list:
-1 -> 2 -> 3 -> 4
-
-After swapping the first pair (1 and 2):
-dummy -> 2 -> 1 -> 3 -> 4
-
-After swapping the next pair (3 and 4):
-dummy -> 2 -> 1 -> 4 -> 3
-```
-##### Time Complexity:
-O(n), where n is the number of nodes in the list. We traverse the list once, swapping pairs of nodes.
-##### Space Complexity:
-O(1), as we only use a few pointers to rearrange the nodes.
-##### Python Code:
+### Code Implementation:
 ```python
 class ListNode:
     def __init__(self, val=0, next=None):
@@ -58,82 +18,64 @@ class ListNode:
         self.next = next
 
 def swapPairs(head: ListNode) -> ListNode:
-    # Step 1: Create a dummy node
+    # Dummy node acts as the starting point to simplify edge cases
     dummy = ListNode(0)
     dummy.next = head
-    prev = dummy
-    
-    # Step 2: Traverse the list and swap pairs
-    while head and head.next:
-        first = head
-        second = head.next
+    current = dummy
+
+    # Iterate through the list while there are at least two nodes to swap
+    while current.next and current.next.next:
+        # Identify the nodes to swap
+        first = current.next
+        second = current.next.next
         
-        # Step 3: Swap the nodes
-        prev.next = second
+        # Swap the nodes
+        # First's next should point to what Second was pointing to
         first.next = second.next
+        # Second's next should point to First
         second.next = first
+        # Current's next should now point to Second
+        current.next = second
+
+        # Move 'current' two nodes forward in the list
+        current = first
         
-        # Move to the next pair
-        prev = first
-        head = first.next
-    
     return dummy.next
 ```
 
-### Approach 2: Recursive Solution
-##### Intuition: 
-The recursive solution works by treating the problem as smaller subproblems. For each pair of nodes, swap them, and then recursively call the function to swap the rest of the list. This breaks the problem down into smaller parts until there are no more pairs to swap.
+### Complexity Analysis:
+- **Time Complexity:** O(n), where n is the number of nodes in the linked list; we traverse the list once.
+- **Space Complexity:** O(1), as we do not use any extra space that scales with input size.
 
-Base case: If there are fewer than two nodes, no swapping is necessary.
-Recursive case: Swap the first two nodes and then recursively swap the remaining list.
+## Approach 2: Recursive Solution
 
-Steps:
-1. Base case: If head is None or head.next is None, return head.
-2. Swap the first two nodes (head and head.next).
-3. Recursively call the function for the rest of the list starting from head.next.next.
-4. Connect the result of the recursive call to head.next.
-### Visualization
-For head = [1, 2, 3, 4]:
-```rust
-Recursive call: swapPairs([3, 4]) → returns [4, 3]
-Swap first two nodes in the current call:
-1 -> 2 → becomes 2 -> 1
-Connect to [4, 3]:
-2 -> 1 -> 4 -> 3
-```
-##### Time Complexity:
-O(n), where n is the number of nodes in the list. Each node is visited once.
-##### Space Complexity:
-O(n), due to the recursion stack.
-##### Python Code:
+**Intuition:**
+- A recursive approach achieves the node swap using recursion to handle the pair-wise swaps as a series of sub-solutions.
+- Swap the first two nodes and recursively call for the rest of the list.
+
+### Code Implementation:
 ```python
-class ListNode:
-    def __init__(self, val=0, next=None):
-        self.val = val
-        self.next = next
-
-def swapPairs(head: ListNode) -> ListNode:
-    # Base case: if there are fewer than 2 nodes, return head
+def swapPairsRecursive(head: ListNode) -> ListNode:
+    # Base case: if there's only one node or no node, return the head as is
     if not head or not head.next:
         return head
     
-    # Step 1: Swap the first two nodes
+    # Nodes to swap
     first = head
     second = head.next
-    
-    # Recursively call for the rest of the list
-    first.next = swapPairs(second.next)
-    
-    # Point second to first to complete the swap
+
+    # Recursively call for the rest of the list beyond the second node
+    first.next = swapPairsRecursive(second.next)
+    # Swap first and second
     second.next = first
-    
-    return second  # second is the new head of the swapped pair
+
+    # Return the new "head" node of the current pair
+    return second
 ```
-## Summary
 
-| Approach                         | Time Complexity | Space Complexity |
-|-----------------------------------|-----------------|------------------|
-| Iterative                    | O(n)      | O(1)             |
-| Recursive                          | O(n)            | O(n)             |
+### Complexity Analysis:
+- **Time Complexity:** O(n), where n is the number of nodes in the linked list; every recursive call processes two nodes.
+- **Space Complexity:** O(n), due to the recursion stack used in processing recursive calls.
 
-The iterative solution with a dummy node is generally preferred because of its constant space complexity and clear handling of the list. The recursive solution is elegant but has a higher space complexity due to the recursion stack.
+Both methods efficiently solve the problem, with the iterative method being slightly more preferable in terms of space complexity. Choose the method that fits your preference for solving problems using iteration or recursion.
+

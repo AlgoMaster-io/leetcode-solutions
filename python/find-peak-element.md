@@ -1,96 +1,87 @@
-# Find Peak Element
-A peak element is an element that is strictly greater than its neighbors.
+# [Leetcode 162: Find Peak Element](https://leetcode.com/problems/find-peak-element/)
 
-Given an integer array nums, find a peak element, and return its index. If the array contains multiple peaks, return the index to any of the peaks.
+## Approaches:
+1. [Linear Scan](#linear-scan)
+2. [Recursive Binary Search](#recursive-binary-search)
+3. [Iterative Binary Search](#iterative-binary-search)
 
-You may imagine that nums[-1] = -∞ and nums[n] = -∞ (i.e., the boundary elements are considered lower than all elements).
+### 1. Linear Scan
 
-You must write an algorithm that runs in O(log n) time.
-### Constraints:
-- 1 <= nums.length <= 1000
-- -2^31 <= nums[i] <= 2^31 - 1
-- nums[i] != nums[i + 1] for all valid i.
+Intuition:
+- The simplest way to solve this problem is to scan through the list from the beginning to the end.
+- A peak element is defined as an element that is greater than its neighbors. With this definition, we can just compare each element with its immediate neighbors to determine if it is a peak.
+- This approach will result in finding the first peak element we encounter.
 
-### Examples
-```javascript
-Input: nums = [1,2,3,1]
-Output: 2
-Explanation: 3 is a peak element and its index is 2.
-
-Input: nums = [1,2,1,3,5,6,4]
-Output: 5
-Explanation: Your function can return index 5 (the element 6 is a peak) or index 1 (the element 2 is a peak).
-```
-
-## Approaches to Solve the Problem
-### Approach 1: Linear Search (Brute Force)
-##### Intuition:
-A simple approach is to traverse the array linearly and check for each element if it is greater than both of its neighbors. If such an element is found, return its index.
-
-Steps:
-1. Iterate through the array from 0 to n - 1.
-2. For each element nums[i], check if it is greater than both nums[i-1] and nums[i+1] (handling boundary cases where i == 0 or i == n - 1).
-3. If an element satisfies this condition, return the index i.
-##### Time Complexity:
-O(n), where n is the length of the array. In the worst case, we may need to scan the entire array.
-##### Space Complexity:
-O(1), because we only use a few variables to track indices and comparisons.
-##### Python Code:
 ```python
 def findPeakElement(nums):
-    for i in range(len(nums)):
-        if (i == 0 or nums[i] > nums[i - 1]) and (i == len(nums) - 1 or nums[i] > nums[i + 1]):
+    # Check each element to see if it is greater than its neighbors
+    for i in range(len(nums) - 1):
+        # If the current element is greater than the next, it is a peak
+        if nums[i] > nums[i + 1]:
             return i
+    # If no peak is found, the last element is the peak by list constraints
+    return len(nums) - 1
+
+# Time Complexity: O(n), where n is the number of elements in the array.
+# Space Complexity: O(1), only constant space is used.
 ```
-### Approach 2: Binary Search (Optimal Solution)
-##### Intuition: 
-We can use binary search to find a peak element efficiently in O(log n) time. The key observation is that if nums[mid] is greater than nums[mid + 1], then the peak must lie on the left side (including mid), and if nums[mid] is less than nums[mid + 1], then the peak must lie on the right side (excluding mid).
 
-The reason behind this is that if the middle element is smaller than its neighbor, there must be a peak on the side with the larger neighbor, because eventually the array must "fall" to the boundaries where we consider the elements as -∞.
+### 2. Recursive Binary Search
 
-Steps:
-1. Initialize two pointers left = 0 and right = len(nums) - 1.
-2. While left < right:
-   - Calculate the midpoint: mid = (left + right) // 2.
-   - If nums[mid] > nums[mid + 1], it means the peak is in the left half (including mid), so move the right pointer to mid.
-   - If nums[mid] < nums[mid + 1], it means the peak is in the right half (excluding mid), so move the left pointer to mid + 1.
-3. Once left == right, return left (or right), which points to a peak element.
-##### Visualization:
-For nums = [1, 2, 1, 3, 5, 6, 4]:
+Intuition:
+- The idea of binary search allows us to find a solution faster by eliminating half the search space at every step.
+- We identify a direction in which to move by comparing the middle element with its right neighbor. If `mid < mid + 1`, then there must be a peak on the right (including mid + 1).
+- If `mid > mid + 1`, then there must be a peak on the left (including mid).
 
-```perl
-Initial: left = 0, right = 6
-Iteration 1: mid = 3 → nums[mid] = 3, nums[mid + 1] = 5 → move left to mid + 1
-Iteration 2: mid = 5 → nums[mid] = 6, nums[mid + 1] = 4 → move right to mid
-Final result: left = 5, right = 5 → peak is at index 5 with value 6
+```python
+def findPeakElement(nums):
+    def search(left, right):
+        # Base case: If the search space is reduced to one element
+        if left == right:
+            return left
+        
+        mid = (left + right) // 2
+        
+        # If the middle element is greater than its next element,
+        # then a peak must be on the left side
+        if nums[mid] > nums[mid + 1]:
+            return search(left, mid)
+        # Otherwise, peak must be on the right side
+        else:
+            return search(mid + 1, right)
+
+    return search(0, len(nums) - 1)
+
+# Time Complexity: O(log n), where n is the number of elements in the array.
+# Space Complexity: O(log n), due to recursive function call stack.
 ```
-##### Time Complexity:
-O(log n), where n is the length of the array. We reduce the search space by half with each iteration.
-##### Space Complexity:
-O(1), because we only use a few variables for the binary search process.
-##### Python Code:
+
+### 3. Iterative Binary Search
+
+Intuition:
+- Similar to the recursive approach, but implemented iteratively to avoid recursion stack overhead.
+- Continually update the search space by checking if the middle element forms a peak.
+- Move towards the side where a potential peak could exist until the left and right pointers converge.
+
 ```python
 def findPeakElement(nums):
     left, right = 0, len(nums) - 1
     
     while left < right:
         mid = (left + right) // 2
+        
+        # Compare mid and mid + 1 to determine the direction to move
         if nums[mid] > nums[mid + 1]:
             right = mid
         else:
             left = mid + 1
     
-    return left  # or return right, both will point to the peak
+    # When left equals right, we have found a peak
+    return left
+
+# Time Complexity: O(log n), where n is the number of elements in the array.
+# Space Complexity: O(1), no additional space is used.
 ```
-### Edge Cases:
-1. Single Element: If the array has only one element, that element is trivially the peak.
-2. Two Elements: If the array has two elements, the peak is the larger of the two.
-3. All Increasing or Decreasing: If the array is strictly increasing, the last element is the peak. If the array is strictly decreasing, the first element is the peak.
-## Summary
 
-| Approach                         | Time Complexity | Space Complexity |
-|-----------------------------------|-----------------|------------------|
-| Brute Force                    | O(n)      | O(1)             |
-| Binary Search with Pivot Handling	                          | 	O(log n)            | O(1)             |
+In conclusion, all these methods are valid for finding a peak. The binary search solutions are much more optimal than a linear scan, providing logarithmic time complexity, which makes them suitable for larger inputs.
 
-The Binary Search approach is the most efficient solution, achieving O(log n) time complexity while using constant space. This solution takes advantage of the properties of the array and uses binary search logic to efficiently find a peak.

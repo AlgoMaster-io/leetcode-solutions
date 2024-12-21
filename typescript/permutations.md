@@ -1,101 +1,92 @@
-# 46. [Permutations](https://leetcode.com/problems/permutations/)
+# [Leetcode 46: Permutations](https://leetcode.com/problems/permutations/)
 
-## Approach 1: Brute Force (Generate All Permutations)
+## Approaches
+- [Approach 1: Backtracking (Recursive)](#approach-1-backtracking-recursive)
+- [Approach 2: Iterative Permutation Generation](#approach-2-iterative-permutation-generation)
 
-### Solution
-typescript
+### Approach 1: Backtracking (Recursive)
+
+The recursive backtracking algorithm is a classic way to solve permutation problems. 
+
+**Intuition:**
+- The idea is to fix one element at a position and recursively generate all permutations of the remaining elements.
+- For each position in the permutation, swap the current number with the number we are iterating through, recurse for the next position, and then backtrack by swapping back.
+
+Here's a step-by-step breakdown:
+
+1. Swap each element with the start element.
+2. Recursively generate all permutations of the rest of the list.
+3. Backtrack by swapping the elements back to their original positions.
+
+This approach benefits from not requiring additional space beyond the stack and the input list.
+
+**Code:**
 ```typescript
-// Time Complexity: O(n * n!), where n is the length of the array
-// Space Complexity: O(n * n!) for storing the permutations
-
 function permute(nums: number[]): number[][] {
-    const result: number[][] = [];
-    const visited: boolean[] = new Array(nums.length).fill(false);
-    generateAll(nums, [], result, visited);
-    return result;
-}
+    const results: number[][] = [];
 
-function generateAll(nums: number[], current: number[], result: number[][], visited: boolean[]): void {
-    if (current.length === nums.length) {
-        result.push([...current]); // Add the current permutation
-        return;
-    }
+    function backtrack(start: number): void {
+        // If we reached the end, we have a complete permutation
+        if (start === nums.length) {
+            results.push([...nums]);
+            return;
+        }
 
-    for (let i = 0; i < nums.length; i++) {
-        if (!visited[i]) {
-            visited[i] = true;
-            current.push(nums[i]); // Choose the current element
-            generateAll(nums, current, result, visited); // Recurse
-            current.pop(); // Backtrack
-            visited[i] = false; // Reset visited state
+        // Swap each element with the start to place it at the start position
+        for (let i = start; i < nums.length; i++) {
+            // Swap the current index with the start
+            [nums[start], nums[i]] = [nums[i], nums[start]];
+            // Recurse for the next position
+            backtrack(start + 1);
+            // Backtrack by swapping back
+            [nums[start], nums[i]] = [nums[i], nums[start]];
         }
     }
+
+    // Start the recursion with the first position
+    backtrack(0);
+    return results;
 }
 ```
 
-## Approach 2: Backtracking (Optimal Solution)
+**Complexity Analysis:**
+- **Time Complexity:** O(n * n!), where n! accounts for generating each permutation and n is for the swap operation.
+- **Space Complexity:** O(n), considering the recursion stack depth and no extra data structures beyond the input list and result storage.
 
-### Solution
-typescript
+### Approach 2: Iterative Permutation Generation
+
+This method constructs permutations iteratively by building up the list step by step.
+
+**Intuition:**
+- Start with an empty list and progressively insert elements into all positions of current permutations.
+- For each number, insert it into every possible position of all existing permutations from the previous step.
+
+This often utilizes a queue or list to build permutations in layers without recursion.
+
+**Code:**
 ```typescript
-// Time Complexity: O(n * n!), where n is the length of the array
-// Space Complexity: O(n * n!) for storing the permutations
+function permuteIteratively(nums: number[]): number[][] {
+    let results: number[][] = [[]];
 
-function permute(nums: number[]): number[][] {
-    const result: number[][] = [];
-    backtrack(nums, [], result);
-    return result;
-}
-
-function backtrack(nums: number[], current: number[], result: number[][]): void {
-    if (current.length === nums.length) {
-        result.push([...current]); // Add the current permutation
-        return;
-    }
-
-    for (let i = 0; i < nums.length; i++) {
-        if (current.includes(nums[i])) {
-            continue; // Skip if the number is already in the current permutation
+    for (const num of nums) {
+        const newResults: number[][] = [];
+        for (const perm of results) {
+            for (let i = 0; i <= perm.length; i++) {
+                const newPerm = [...perm]; // Copy the current permutation
+                newPerm.splice(i, 0, num); // Insert current number at position i
+                newResults.push(newPerm);
+            }
         }
-        current.push(nums[i]); // Choose the current element
-        backtrack(nums, current, result); // Recurse
-        current.pop(); // Backtrack
+        results = newResults;
     }
+
+    return results;
 }
 ```
 
-## Approach 3: Swap-Based Backtracking (In-Place Modification)
+**Complexity Analysis:**
+- **Time Complexity:** O(n * n!), each level constructing permutations requires considering all current permutations and extending them.
+- **Space Complexity:** O(n * n!), storing all permutations with n numbers.
 
-### Solution
-typescript
-```typescript
-// Time Complexity: O(n * n!), where n is the length of the array
-// Space Complexity: O(n) for the recursion stack
-
-function permute(nums: number[]): number[][] {
-    const result: number[][] = [];
-    backtrack(nums, 0, result);
-    return result;
-}
-
-function backtrack(nums: number[], start: number, result: number[][]): void {
-    if (start === nums.length) {
-        const current = [...nums]; // Add the current permutation
-        result.push(current);
-        return;
-    }
-
-    for (let i = start; i < nums.length; i++) {
-        swap(nums, start, i); // Swap to create a new permutation
-        backtrack(nums, start + 1, result); // Recurse
-        swap(nums, start, i); // Backtrack to the original state
-    }
-}
-
-function swap(nums: number[], i: number, j: number): void {
-    const temp = nums[i];
-    nums[i] = nums[j];
-    nums[j] = temp; // Swap two elements in the array
-}
-```
+Both methods efficiently generate permutations, but depending on stack size limitations or preferences for iteration, either may be preferred in different environments.
 

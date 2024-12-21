@@ -1,137 +1,116 @@
-# 46. [Permutations](https://leetcode.com/problems/permutations/)
+# [Leetcode 46: Permutations](https://leetcode.com/problems/permutations/)
 
-## Approach 1: Brute Force (Generate All Permutations)
+## Approaches
 
-### Solution
-go
+1. [Basic Backtracking](#basic-backtracking)
+2. [Backtracking with In-place Swapping](#backtracking-with-in-place-swapping)
+
+---
+
+### Basic Backtracking
+
+This is the most straightforward method to generate permutations using the backtracking approach. The idea is to build permutations by progressively constructing each permutation and then backtracking if it doesn’t lead to a solution.
+
+**Intuition:**
+
+- Start by iterating over each number and visualize placing it in the first position.
+- Continue selecting numbers for subsequent positions.
+- Ensure no number is placed more than once at the same level of recursion by tracking chosen numbers.
+- If all numbers are chosen, a permutation is completed and stored.
+
 ```go
-// Time Complexity: O(n * n!), where n is the length of the array
-// Space Complexity: O(n * n!) for storing the permutations
-package main
-
-import "fmt"
-
 func permute(nums []int) [][]int {
-	var result [][]int
-	visited := make([]bool, len(nums))
-	generateAll(nums, []int{}, &result, visited)
-	return result
-}
+    var result [][]int
+    var current []int
+    used := make([]bool, len(nums))
 
-func generateAll(nums []int, current []int, result *[][]int, visited []bool) {
-	if len(current) == len(nums) {
-		temp := make([]int, len(current))
-		copy(temp, current)
-		*result = append(*result, temp)
-		return
-	}
+    var backtrack func()
+    backtrack = func() {
+        // Base case: if the current permutation has as many numbers as nums, it's complete
+        if len(current) == len(nums) {
+            // Append a copy of the current permutation to the result
+            perm := make([]int, len(current))
+            copy(perm, current)
+            result = append(result, perm)
+            return
+        }
 
-	for i := 0; i < len(nums); i++ {
-		if !visited[i] {
-			visited[i] = true
-			current = append(current, nums[i]) // Choose the current element
-			generateAll(nums, current, result, visited) // Recurse
-			current = current[:len(current)-1] // Backtrack
-			visited[i] = false // Reset visited state
-		}
-	}
-}
+        // Explore choices
+        for i, num := range nums {
+            if !used[i] {
+                // Choose number num, marking it used
+                used[i] = true
+                current = append(current, num)
 
-func main() {
-	nums := []int{1, 2, 3}
-	fmt.Println(permute(nums))
+                // Recurse: explore with current number choice
+                backtrack()
+
+                // Undo choice: backtrack
+                current = current[:len(current)-1]
+                used[i] = false
+            }
+        }
+    }
+
+    // Start backtracking with an empty permutation
+    backtrack()
+    return result
 }
 ```
 
-## Approach 2: Backtracking (Optimal Solution)
+**Time Complexity:** \(O(n \times n!)\) - There are \(n!\) permutations and each permutation of size \(n\) takes \(O(n)\) time to build a copy.
 
-### Solution
-go
+**Space Complexity:** \(O(n!)\) - Storing all permutations requires \(n!\) space.
+
+---
+
+### Backtracking with In-place Swapping
+
+This technique optimizes the space by eliminating the need to track used numbers separately. Instead, we manipulate the input list directly by swapping numbers in-place.
+
+**Intuition:**
+
+- Treat swapping as the choice-making mechanism. For each number at a given position, swap it with any number from current to the end.
+- Recursively call the function allowing the next number in line to be fixed.
+- After recursion, backtrack by swapping back to restore the array.
+
 ```go
-// Time Complexity: O(n * n!), where n is the length of the array
-// Space Complexity: O(n * n!) for storing the permutations
-package main
-
-import "fmt"
-
 func permute(nums []int) [][]int {
-	var result [][]int
-	backtrack(nums, []int{}, &result)
-	return result
-}
+    var result [][]int
 
-func backtrack(nums []int, current []int, result *[][]int) {
-	if len(current) == len(nums) {
-		temp := make([]int, len(current))
-		copy(temp, current)
-		*result = append(*result, temp)
-		return
-	}
+    var backtrack func(first int)
+    backtrack = func(first int) {
+        // If first index equals length of nums, a permutation is completed
+        if first == len(nums) {
+            perm := make([]int, len(nums))
+            copy(perm, nums)
+            result = append(result, perm)
+            return
+        }
 
-	for _, num := range nums {
-		if contains(current, num) {
-			continue // Skip if the number is already in the current permutation
-		}
-		current = append(current, num) // Choose the current element
-		backtrack(nums, current, result) // Recurse
-		current = current[:len(current)-1] // Backtrack
-	}
-}
+        for i := first; i < len(nums); i++ {
+            // Place i-th integer first in the current permutation
+            nums[first], nums[i] = nums[i], nums[first]
 
-func contains(slice []int, num int) bool {
-	for _, val := range slice {
-		if val == num {
-			return true
-		}
-	}
-	return false
-}
+            // Use recursion to permute the remaining integers
+            backtrack(first + 1)
 
-func main() {
-	nums := []int{1, 2, 3}
-	fmt.Println(permute(nums))
+            // Backtrack: swap back to the original
+            nums[first], nums[i] = nums[i], nums[first]
+        }
+    }
+
+    // Start backtracking with the first index
+    backtrack(0)
+    return result
 }
 ```
 
-## Approach 3: Swap-Based Backtracking (In-Place Modification)
+**Time Complexity:** \(O(n \times n!)\) - Just like the previous method, it achieves \(n!\) permutations with linear time complexity for each permutation.
 
-### Solution
-go
-```go
-// Time Complexity: O(n * n!), where n is the length of the array
-// Space Complexity: O(n) for the recursion stack
-package main
+**Space Complexity:** \(O(n!)\) - Uses the input array for in-place swaps but requires storage for result permutations.
 
-import "fmt"
+---
 
-func permute(nums []int) [][]int {
-	var result [][]int
-	backtrack(nums, 0, &result)
-	return result
-}
-
-func backtrack(nums []int, start int, result *[][]int) {
-	if start == len(nums) {
-		current := make([]int, len(nums))
-		copy(current, nums)
-		*result = append(*result, current)
-		return
-	}
-
-	for i := start; i < len(nums); i++ {
-		swap(nums, start, i) // Swap to create a new permutation
-		backtrack(nums, start+1, result) // Recurse
-		swap(nums, start, i) // Backtrack to the original state
-	}
-}
-
-func swap(nums []int, i, j int) {
-	nums[i], nums[j] = nums[j], nums[i] // Swap two elements in the array
-}
-
-func main() {
-	nums := []int{1, 2, 3}
-	fmt.Println(permute(nums))
-}
-```
+Both techniques effectively solve the permutations problem with recursive backtracking. The in-place swap variant provides an interesting optimization in terms of auxiliary space usage beyond the output storage.
 

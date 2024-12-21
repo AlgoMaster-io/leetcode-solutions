@@ -1,126 +1,74 @@
-# Minimum Size Subarray Sum 
-Given an array of positive integers nums and a positive integer target, return the minimal length of a contiguous subarray [nums[l], nums[l+1], ..., nums[r-1], nums[r]] of which the sum is greater than or equal to target. If there is no such subarray, return 0 instead.
+# [Leetcode 209: Minimum Size Subarray Sum](https://leetcode.com/problems/minimum-size-subarray-sum/)
 
-### Constraints:
-- 1 <= target <= 10^9
-- 1 <= nums.length <= 10^5
-- 1 <= nums[i] <= 10^5
+## Approaches
+1. [Brute-force Approach](#brute-force-approach)
+2. [Sliding Window Approach](#sliding-window-approach)
 
-### Examples
-```javascript
-Input: target = 7, nums = [2,3,1,2,4,3]
-Output: 2
-Explanation: The subarray [4,3] has the minimal length under the problem constraint.
+### Brute-force Approach
 
-Input: target = 4, nums = [1,4,4]
-Output: 1
+#### Intuition
+The brute-force solution involves checking every possible subarray to determine if its sum is at least the target. If it is, we check its length and update the minimum length encountered so far. This approach is straightforward but inefficient, as it involves nested loops.
 
-Input: target = 11, nums = [1,1,1,1,1,1,1,1]
-Output: 0
-```
+#### Steps
+1. Initialize `min_length` with infinity to track the smallest length of the subarray with a sum at least equal to the target.
+2. Use a nested loop where the outer loop marks the start and the inner loop finds the end of the subarray.
+3. For each starting point, iterate through possible end points, calculating the sum.
+4. If the sum reaches or exceeds the target, compare and possibly update `min_length`.
+5. Return `0` if no subarray is found; otherwise, return `min_length`.
 
-## Approaches to Solve the Problem
-### Approach 1: Brute Force (Inefficient)
-##### Intuition:
-In the brute-force approach, we consider every possible subarray in the array. For each subarray, we compute its sum and check if it meets or exceeds the target. We track the minimum subarray length.
-
-Steps:
-1. Use two nested loops to consider all subarrays.
-2. For each subarray, calculate its sum.
-3. If the sum is greater than or equal to the target, update the minimum subarray length.
-4. Return the minimum length found.
-##### Time Complexity:
-O(n²), where n is the length of the array. This approach checks every subarray.
-##### Space Complexity:
-O(1), as no extra space is used beyond variables for tracking the subarray sum and length.
-##### Python Code:
 ```python
-def minSubArrayLen(target: int, nums: List[int]) -> int:
+def minSubArrayLen(target, nums):
     n = len(nums)
-    min_len = float('inf')
+    min_length = float('inf')  # Start with a large number to find the minimum
+
+    for start in range(n):
+        sum = 0
+        for end in range(start, n):
+            sum += nums[end]
+            if sum >= target:
+                min_length = min(min_length, end - start + 1)
+                break  # Once the target is met, no need to extend this subarray
     
-    for i in range(n):
-        current_sum = 0
-        for j in range(i, n):
-            current_sum += nums[j]
-            if current_sum >= target:
-                min_len = min(min_len, j - i + 1)
-                break
-    
-    return 0 if min_len == float('inf') else min_len
+    return 0 if min_length == float('inf') else min_length
 ```
-### Approach 2: Sliding Window (Optimal Solution)
-##### Intuition: 
-The brute-force approach is inefficient because we are recalculating the sum for every subarray from scratch. We can improve this by using the sliding window technique. The idea is to maintain a window (a subarray) with two pointers, left and right, and dynamically adjust the window size as we traverse the array.
 
-Start by expanding the window by moving the right pointer until the window’s sum is greater than or equal to the target.
-Once the window's sum is valid, shrink the window by moving the left pointer inward to minimize its size while keeping the sum greater than or equal to the target.
+#### Complexity
+- **Time Complexity**: O(n^2), where n is the length of the array. This is due to the double loop over the array elements.
+- **Space Complexity**: O(1), as we use only a constant amount of space beyond the input array.
 
-Steps:
-1. Initialize two pointers left and right at the start of the array.
-2. Maintain a running sum of the elements in the window.
-3. Expand the window by moving right and adding the current element to the running sum.
-4. If the sum is greater than or equal to the target, update the minimum length and move the left pointer 5.inward to try and shrink the window.
-5. Repeat until right reaches the end of the array.
-##### Visualization:
-```perl
-For target = 7 and nums = [2,3,1,2,4,3]:
+### Sliding Window Approach
 
-Initial state: left = 0, right = 0, sum = 0
+#### Intuition
+The sliding window approach efficiently finds the minimum length subarray by maintaining a dynamic window and expanding or contracting it based on the current sum. This method improves upon the brute-force by reducing unnecessary recalculations and focusing on optimal window resizing.
 
-Step 1: Expand the window
-    right = 0, sum = 2
+#### Steps
+1. Initialize two pointers `left` and `right` at the start of the array, and `current_sum` to track the sum of the current window.
+2. Move `right` forward to include elements in the sum until it meets or exceeds the target.
+3. Once the target is met, try to shrink the window from the left to potentially find a smaller valid subarray, updating the minimum length as needed.
+4. Return `0` if no subarray is found; otherwise, return the length of the smallest subarray.
 
-Step 2: Expand the window
-    right = 1, sum = 5
-
-Step 3: Expand the window
-    right = 2, sum = 6
-
-Step 4: Expand the window
-    right = 3, sum = 8 (valid window), update min_len = 4, shrink window from left
-
-Step 5: Shrink window
-    left = 1, sum = 6
-
-Step 6: Expand the window
-    right = 4, sum = 10 (valid window), update min_len = 2
-
-Step 7: Shrink window
-    left = 2, sum = 7 (valid window), update min_len = 2
-
-Step 8: Shrink window further until left = 3, then exit.
-```
-##### Time Complexity:
-O(n), where n is the length of the array. We traverse the array once with the sliding window.
-##### Space Complexity:
-O(1), as no extra space is used beyond the sliding window and a few variables.
-##### Python Code:
 ```python
-def minSubArrayLen(target: int, nums: List[int]) -> int:
+def minSubArrayLen(target, nums):
+    n = len(nums)
+    min_length = float('inf')  # Initially set to a large number
     left = 0
     current_sum = 0
-    min_len = float('inf')
-    
-    for right in range(len(nums)):
-        current_sum += nums[right]
-        
-        # Shrink the window while sum is greater than or equal to target
-        while current_sum >= target:
-            min_len = min(min_len, right - left + 1)
-            current_sum -= nums[left]
-            left += 1
-    
-    return 0 if min_len == float('inf') else min_len
-```
-#### Edge Cases:
-1. Target larger than the total sum: If the sum of all elements in nums is less than target, the function should return 0.
-2. Single element array: If the array has only one element, the function should handle this case properly by checking if the element is greater than or equal to the target.
-3. All elements are smaller than target: If all elements are smaller than the target, the algorithm should correctly identify the minimal subarray that meets the condition.
-## Summary
-| Approach                         | Time Complexity | Space Complexity |
-|-----------------------------------|-----------------|------------------|
-| Brute Force	                    | 	O(n²)      | O(1)             |
-| Sliding Window (Optimal)	                          | O(n)            | O(1)             |
 
-The Sliding Window approach is the most efficient solution. It processes the array in linear time and adjusts the window dynamically, making it the optimal solution for this problem.
+    for right in range(n):
+        current_sum += nums[right]
+
+        # Try to shrink the window from the left as far as the sum allows
+        while current_sum >= target:
+            min_length = min(min_length, right - left + 1)
+            current_sum -= nums[left]
+            left += 1  # Move the left boundary to try and find smaller subarray
+    
+    return 0 if min_length == float('inf') else min_length
+```
+
+#### Complexity
+- **Time Complexity**: O(n), where n is the length of the array, as each element is processed at most twice by the pointers.
+- **Space Complexity**: O(1), since we are using only a fixed amount of additional space.
+
+By using the sliding window technique, we significantly improve the efficiency of solving the problem without sacrificing accuracy.
+

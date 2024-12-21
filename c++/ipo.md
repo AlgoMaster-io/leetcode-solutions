@@ -1,72 +1,106 @@
-# 480. [Sliding Window Median](https://leetcode.com/problems/sliding-window-median/)
+# [LeetCode 502: IPO](https://leetcode.com/problems/ipo/)
 
-## Approach: Two Heaps (Max-Heap and Min-Heap)
+## Approaches
+- [Approach 1: Brute Force](#approach-1-brute-force)
+- [Approach 2: Priority Queue (Max Heap)](#approach-2-priority-queue-max-heap)
 
-### Solution
+---
+
+## Approach 1: Brute Force
+
+### Intuition
+In the brute force approach, we consider investing our initial capital into projects that we can afford and then add the profit to our current capital. For each project considered, we have to check all projects we can afford and pick the one with the maximum profit. This exhaustive process leads to a higher time complexity.
+
+### Approach
+1. Start with the available initial capital.
+2. For each round, evaluate all available projects that we can afford with the current capital.
+3. Choose the project with the maximum profit and increment the capital.
+4. Repeat the process for at most `k` investments.
+
+### Code
 ```cpp
-// Time Complexity: O(n * log(k)), where n is the size of nums and k is the size of the window
-// Space Complexity: O(k), for storing elements in the heaps
-#include <vector>
-#include <queue>
-
 class Solution {
 public:
-    std::vector<double> medianSlidingWindow(std::vector<int>& nums, int k) {
-        int n = nums.size();
-        std::vector<double> result(n - k + 1);
+    int findMaximizedCapital(int k, int W, vector<int>& Profits, vector<int>& Capital) {
+        int n = Profits.size();
+        vector<bool> used(n, false);
         
-        // Defining max-heap for the smaller half and min-heap for the larger half
-        std::priority_queue<int> maxHeap; // max-heap
-        std::priority_queue<int, std::vector<int>, std::greater<int>> minHeap; // min-heap
-        
-        for (int i = 0; i < n; i++) {
-            // Add the new element into the appropriate heap
-            if (maxHeap.empty() || nums[i] <= maxHeap.top()) {
-                maxHeap.push(nums[i]);
-            } else {
-                minHeap.push(nums[i]);
-            }
-            
-            // Rebalance the heaps if necessary
-            if (maxHeap.size() > minHeap.size() + 1) {
-                minHeap.push(maxHeap.top());
-                maxHeap.pop();
-            } else if (minHeap.size() > maxHeap.size()) {
-                maxHeap.push(minHeap.top());
-                minHeap.pop();
-            }
-            
-            // Remove the element that is sliding out of the window
-            if (i >= k) {
-                int elementToRemove = nums[i - k];
-                if (elementToRemove <= maxHeap.top()) {
-                    maxHeap.erase(maxHeap.find(elementToRemove));
-                } else {
-                    minHeap.erase(minHeap.find(elementToRemove));
-                }
-                
-                // Rebalance the heaps after removal
-                if (maxHeap.size() > minHeap.size() + 1) {
-                    minHeap.push(maxHeap.top());
-                    maxHeap.pop();
-                } else if (minHeap.size() > maxHeap.size()) {
-                    maxHeap.push(minHeap.top());
-                    minHeap.pop();
+        for (int i = 0; i < k; ++i) { // for at most k investments
+            int maxProf = -1, index = -1;
+            for (int j = 0; j < n; ++j) { // check every project
+                if (!used[j] && Capital[j] <= W && Profits[j] > maxProf) {
+                    maxProf = Profits[j];
+                    index = j;
                 }
             }
-            
-            // Add the median to the result when the window is fully formed
-            if (i >= k - 1) {
-                if (maxHeap.size() == minHeap.size()) {
-                    result[i - k + 1] = ((double)maxHeap.top() + minHeap.top()) / 2;
-                } else {
-                    result[i - k + 1] = maxHeap.top();
-                }
-            }
+            if (index == -1) break; // no project can be taken
+            W += Profits[index];
+            used[index] = true;
         }
         
-        return result;
+        return W;
     }
 };
 ```
+
+### Time Complexity
+- **Time Complexity**: O(kn), where `k` is the maximum number of projects we can choose and `n` is the number of projects.
+- **Space Complexity**: O(n), used to keep track of which projects have been used.
+
+---
+
+## Approach 2: Priority Queue (Max Heap)
+
+### Intuition
+To optimize the selection of projects, we utilize a max heap data structure to always pick the project with the maximum profit that we can afford next. This way, finding the next most profitable project becomes more efficient as compared to the brute force approach.
+
+### Approach
+1. Pair the profits with capital requirements and sort based on capital requirements.
+2. Use a max heap (priority queue) to store available projects.
+3. Iterate through the projects and push all affordable projects into the heap.
+4. Extract the project with the maximum profit from the heap until `k` or no more projects can be afforded.
+
+### Code
+```cpp
+#include <queue>
+#include <vector>
+#include <algorithm>
+
+class Solution {
+public:
+    int findMaximizedCapital(int k, int W, vector<int>& Profits, vector<int>& Capital) {
+        int n = Profits.size();
+        vector<pair<int, int>> projects;
+        for (int i = 0; i < n; ++i) {
+            projects.push_back({Capital[i], Profits[i]});
+        }
+        // Sort projects by their capital requirements
+        sort(projects.begin(), projects.end());
+        
+        priority_queue<int> maxHeap;
+        int i = 0;
+        
+        for (int j = 0; j < k; ++j) { // for at most k investments
+            // Push all projects that can be afforded into the max heap
+            while (i < n && projects[i].first <= W) {
+                maxHeap.push(projects[i].second);
+                i++;
+            }
+            if (maxHeap.empty()) break; // No projects can be taken anymore
+            
+            // Take the project with the maximum profit
+            W += maxHeap.top();
+            maxHeap.pop();
+        }
+        
+        return W;
+    }
+};
+```
+
+### Time Complexity
+- **Time Complexity**: O(n log n + k log n), where `n` is the number of projects. Sorting the projects takes `O(n log n)`, and extracting from the heap is `O(log n)`.
+- **Space Complexity**: O(n), for storing pairs and using the max heap.
+
+By employing these approaches strategically, we efficiently decide on projects that maximize our capital growth.
 

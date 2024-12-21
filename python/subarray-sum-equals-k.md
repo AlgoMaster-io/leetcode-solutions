@@ -1,108 +1,77 @@
+# [Leetcode 560: Subarray Sum Equals K](https://leetcode.com/problems/subarray-sum-equals-k/)
 
-# Subarray Sum Equals K
-Given an array of integers nums and an integer k, return the total number of continuous subarrays whose sum equals to k.
+## Approaches:
+- [Approach 1: Brute Force](#approach-1-brute-force)
+- [Approach 2: Cumulative Sum with HashMap](#approach-2-cumulative-sum-with-hashmap)
 
-### Constraints:
-- 1 <= nums.length <= 2 * 10^4
-- -1000 <= nums[i] <= 1000
-- -10^7 <= k <= 10^7
-
-### Examples
-```javascript
-Input: nums = [1,1,1], k = 2
-Output: 2
-Explanation: [1,1] and [1,1] are the two subarrays with a sum equal to 2.
-
-Input: nums = [1,2,3], k = 3
-Output: 2
-Explanation: [1, 2] and [3] are the two subarrays with a sum equal to 3.
-```
-
-## Approaches to Solve the Problem
 ### Approach 1: Brute Force
-##### Intuition:
-A straightforward approach would be to iterate through every possible subarray in nums and check if the sum equals k. This solution works but is inefficient due to the repeated summation of subarray elements.
 
-1. Use a nested loop to consider every possible subarray in the array.
-2. For each subarray, calculate the sum.
-3. If the sum equals k, increment the count of valid subarrays.
-##### Time Complexity:
-O(n²), where n is the length of the array because we consider all subarrays.
-##### Space Complexity:
-O(1), no extra space is used beyond the variables for sum and count.
-##### Python Code:
+**Intuition:**
+
+The simplest approach is to consider all possible subarrays and for each subarray, calculate the sum and check if it is equal to `k`. If it is, increase the count. This involves two nested loops, one for the start of the subarray and another for the end of the subarray.
+
+**Time Complexity:** \(O(n^2)\)  
+**Space Complexity:** \(O(1)\)
+
 ```python
-def subarraySum(nums: List[int], k: int) -> int:
+def subarraySum(nums, k):
+    # Initialize a variable to store the count of subarrays
     count = 0
-    n = len(nums)
-    
-    for i in range(n):
-        current_sum = 0
-        for j in range(i, n):
-            current_sum += nums[j]
-            if current_sum == k:
+    # Iterate over each possible starting index of the subarray
+    for start in range(len(nums)):
+        # Initialize the sum for this starting index
+        curr_sum = 0
+        # Iterate over each possible ending index of the subarray
+        for end in range(start, len(nums)):
+            # Add the current number to the current sum
+            curr_sum += nums[end]
+            # Check if the current sum equals k
+            if curr_sum == k:
+                # Increment the count if the sum equals k
                 count += 1
-                
     return count
 ```
-### Approach 2: Prefix Sum with Hash Map
-##### Intuition: 
-The key idea in optimizing the brute force approach is to use prefix sums. A prefix sum is the cumulative sum of elements from the start of the array to any index i. If the difference between two prefix sums equals k, then the subarray between these two indices has a sum of k.
 
-1. Define prefix_sum[i] as the cumulative sum of elements from the start of the array to index i.
-2. To find the number of subarrays with sum k, check if there is a previous prefix sum such that: ```current_prefix_sum - previous_prefix_sum = k```
-3. Rearranging this gives: ```previous_prefix_sum = current_prefix_sum - k```
-4. Use a hash map to store the frequency of each prefix sum as we iterate through the array.
+### Approach 2: Cumulative Sum with HashMap
 
-Steps:
-1. Initialize a prefix_sum as 0 and a hash map prefix_sum_count to store how often each prefix sum occurs.
-2. For each element in the array, update the prefix_sum.
-3. Check if prefix_sum - k exists in the hash map. If it does, the count of valid subarrays is incremented by the frequency of this sum.
-4. Add the current prefix_sum to the hash map.
+**Intuition:**
 
-##### Visualization:
-For nums = [1, 1, 1], k = 2:
+A more efficient approach involves using a hash map to store cumulative sums and their frequencies. The idea is to calculate the cumulative sum as we iterate through the array. For each element, we check if there is a previous cumulative sum so that current cumulative sum minus this sum equals `k`. If such a sum exists, it means there is a subarray ending at the current index with sum `k`.
 
-```perl
-prefix_sum = 0 initially
-Iterating through the array:
-  At index 0, prefix_sum = 1, prefix_sum - k = 1 - 2 = -1 (not found in hash map)
-  At index 1, prefix_sum = 2, prefix_sum - k = 2 - 2 = 0 (found in hash map, count += 1)
-  At index 2, prefix_sum = 3, prefix_sum - k = 3 - 2 = 1 (found in hash map, count += 1)
+**Time Complexity:** \(O(n)\)  
+**Space Complexity:** \(O(n)\)
 
-Total count = 2
-```
-##### Time Complexity:
-O(n), where n is the length of the array, since we traverse the array once and use hash map operations that are O(1) on average.
-##### Space Complexity:
-O(n), because we use a hash map to store prefix sums.
-##### Python Code:
 ```python
-def subarraySum(nums: List[int], k: int) -> int:
-    prefix_sum_count = {0: 1}  # To handle the case when prefix_sum equals k
-    prefix_sum = 0
+def subarraySum(nums, k):
+    # Initialize a dictionary to store the frequencies of cumulative sums
+    sum_freq = {0: 1}  # Base case for a cumulative sum that directly equals k
+    # Initialize variables
+    curr_sum = 0
     count = 0
     
+    # Iterate over each number in the input list
     for num in nums:
-        prefix_sum += num
+        # Update the cumulative sum
+        curr_sum += num
+        # Calculate the difference needed to get the target sum k
+        diff = curr_sum - k
         
-        # Check if there is a previous prefix_sum such that prefix_sum - k exists
-        if prefix_sum - k in prefix_sum_count:
-            count += prefix_sum_count[prefix_sum - k]
+        # If the difference exists in the dictionary, it means there are
+        # some subarrays that sum up to k ending at the current index
+        if diff in sum_freq:
+            # Increment the count by the number of times the difference 
+            # has occurred
+            count += sum_freq[diff]
         
-        # Add the current prefix_sum to the map
-        if prefix_sum in prefix_sum_count:
-            prefix_sum_count[prefix_sum] += 1
+        # Record the current sum in the dictionary, incrementing 
+        # its frequency
+        if curr_sum in sum_freq:
+            sum_freq[curr_sum] += 1
         else:
-            prefix_sum_count[prefix_sum] = 1
+            sum_freq[curr_sum] = 1
     
     return count
 ```
-## Summary
 
-| Approach                         | Time Complexity | Space Complexity |
-|-----------------------------------|-----------------|------------------|
-| Brute Force                    | O(n^2)      | O(1)             |
-| Prefix Sum with Hash Map                          | O(n)            | O(n)             |
+In this approach, we efficiently count the subarrays summing to `k` using a hash map to track the cumulative sum frequencies, thus leading to an optimal time complexity of \(O(n)\).
 
-The Prefix Sum with Hash Map approach is the most efficient solution as it computes the number of valid subarrays in linear time, making use of cumulative sums and hash maps to store and check the required prefix sums.

@@ -1,80 +1,90 @@
-# [15. 3Sum](https://leetcode.com/problems/3sum/)
+# [3Sum](https://leetcode.com/problems/3sum/)
 
-## Approach 1: Brute Force (Basic)
+## Approaches:
+- [Brute Force Approach](#brute-force-approach)
+- [Sorting and Two-Pointer Approach](#sorting-and-two-pointer-approach)
 
-### Solution
-csharp
+### Brute Force Approach
+The brute force approach for solving the 3Sum problem is to generate all possible triplets (i, j, k) where i < j < k. We then check if the sum of the elements at these indices is zero.
+
+**Intuition:**
+- Iterate through all unique pairs of indices (i, j, k) in the array, and check if their sum equals zero.
+- Since we need combinations without repetitions, ensure i < j < k.
+
 ```csharp
-// Time Complexity: O(n^3)
-// Space Complexity: O(1) (excluding output list)
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 public class Solution {
     public IList<IList<int>> ThreeSum(int[] nums) {
-        var result = new HashSet<IList<int>>();
-        int n = nums.Length;
+        IList<IList<int>> result = new List<IList<int>>();
 
-        // Iterate through all possible triplets
-        for (int i = 0; i < n - 2; i++) {
-            for (int j = i + 1; j < n - 1; j++) {
-                for (int k = j + 1; k < n; k++) {
+        // Iterate through all elements for the first number
+        for (int i = 0; i < nums.Length - 2; i++) {
+            // Iterate for the second number
+            for (int j = i + 1; j < nums.Length - 1; j++) {
+                // Iterate for the third number
+                for (int k = j + 1; k < nums.Length; k++) {
+                    // Check if these three add up to zero
                     if (nums[i] + nums[j] + nums[k] == 0) {
-                        var triplet = new List<int> { nums[i], nums[j], nums[k] };
-                        triplet.Sort(); // Ensure the triplet is in sorted order
-                        result.Add(triplet); // Add triplet to the set to avoid duplicates
+                        List<int> triplet = new List<int> { nums[i], nums[j], nums[k] };
+                        triplet.Sort(); // Sort to ensure the triplet is in order
+                        if (!ContainsTriplet(result, triplet)) {
+                            result.Add(triplet);
+                        }
                     }
                 }
             }
         }
+        
+        return result;
+    }
 
-        return result.ToList(); // Convert set to list for the output
+    private bool ContainsTriplet(IList<IList<int>> list, List<int> triplet) {
+        foreach (var item in list) {
+            if (item[0] == triplet[0] && item[1] == triplet[1] && item[2] == triplet[2]) {
+                return true;
+            }
+        }
+        return false;
     }
 }
 ```
 
-## Approach 2: Two Pointers (Optimal)
+**Time Complexity:** O(n^3)  
+**Space Complexity:** O(n), storing the result.
 
-### Solution
-csharp
+### Sorting and Two-Pointer Approach
+This approach reduces the time complexity by first sorting the array and then using a two-pointer strategy to find the pairs that sum to the negative of each element.
+
+**Intuition:**
+- Sort the array. This helps in easily skipping duplicates and using a two-pointer method effectively.
+- Fix one number a[i] and then find two numbers from the remaining part of the array which sum to -a[i].
+- Use two pointers starting from both ends of the remaining array to find the combinations.
+
 ```csharp
-// Time Complexity: O(n^2)
-// Space Complexity: O(n) (for sorting or output list)
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 public class Solution {
     public IList<IList<int>> ThreeSum(int[] nums) {
-        var result = new List<IList<int>>();
-        Array.Sort(nums); // Sort the array to use two-pointer technique
+        Array.Sort(nums); // Sort the array
+        IList<IList<int>> result = new List<IList<int>>();
 
         for (int i = 0; i < nums.Length - 2; i++) {
-            // Skip duplicates for the first element
-            if (i > 0 && nums[i] == nums[i - 1]) {
-                continue;
-            }
+            // Skip duplicates
+            if (i > 0 && nums[i] == nums[i - 1]) continue;
 
-            int left = i + 1;
-            int right = nums.Length - 1;
-
-            // Two-pointer approach
+            int left = i + 1, right = nums.Length - 1;
             while (left < right) {
                 int sum = nums[i] + nums[left] + nums[right];
                 if (sum == 0) {
                     result.Add(new List<int> { nums[i], nums[left], nums[right] });
 
-                    // Skip duplicates for the second and third elements
+                    // Skip duplicates for left and right
                     while (left < right && nums[left] == nums[left + 1]) left++;
                     while (left < right && nums[right] == nums[right - 1]) right--;
 
                     left++;
                     right--;
                 } else if (sum < 0) {
-                    left++; // Increase the sum
+                    left++; // We need a larger sum, move the left pointer to the right
                 } else {
-                    right--; // Decrease the sum
+                    right--; // We need a smaller sum, move the right pointer to the left
                 }
             }
         }
@@ -83,4 +93,7 @@ public class Solution {
     }
 }
 ```
+
+**Time Complexity:** O(n^2)  
+**Space Complexity:** O(n), storing the result.
 

@@ -1,109 +1,152 @@
-# 480. [Sliding Window Median](https://leetcode.com/problems/sliding-window-median/)
+# [Leetcode 502: IPO](https://leetcode.com/problems/ipo/)
 
-## Approach: Two Heaps (Max-Heap and Min-Heap)
+## Solutions
 
-### Solution
-go
+- [Brute Force Approach](#brute-force-approach)
+- [Greedy Approach with Priority Queue](#greedy-approach-with-priority-queue)
+
+---
+
+### Brute Force Approach
+
+#### Intuition:
+
+In this approach, we'll simulate the process of investing capital in projects while gradually selecting the most profitable project at each step. The basic idea is to find all feasible projects, i.e., projects whose capital requirement is less than or equal to our current available capital, and then invest in the profitable one among them.
+
+#### Approach:
+
+1. Start by initializing the initial capital available.
+2. While you still have project opportunities (`k` is greater than 0):
+   - Identify all projects that can be funded (i.e., their `capital[i]` is less than or equal to your current capital).
+   - If no such project is found, break out of the loop.
+   - From the list of feasible projects, choose the one with the maximum profit.
+   - Deduct the initial capital and add the profit of the chosen project to your capital.
+   - Decrease the number of available project opportunities (`k`) by 1.
+3. Return the final capital amount.
+
+#### Code:
+
 ```go
-// Time Complexity: O(n * log(k)), where n is the size of nums and k is the size of the window
-// Space Complexity: O(k), for storing elements in the heaps
-package main
-
-import (
-	"container/heap"
-	"fmt"
-)
-
-// A MinHeap is a priority queue implementing heap.Interface using an array of int
-type MinHeap []int
-
-func (h MinHeap) Len() int           { return len(h) }
-func (h MinHeap) Less(i, j int) bool { return h[i] < h[j] }
-func (h MinHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
-
-func (h *MinHeap) Push(x interface{}) {
-	*h = append(*h, x.(int))
-}
-
-func (h *MinHeap) Pop() interface{} {
-	n := len(*h)
-	x := (*h)[n-1]
-	*h = (*h)[:n-1]
-	return x
-}
-
-// A MaxHeap is a MinHeap with inverse comparison
-type MaxHeap struct{ MinHeap }
-
-func (h MaxHeap) Less(i, j int) bool { return h.MinHeap[i] > h.MinHeap[j] }
-
-func medianSlidingWindow(nums []int, k int) []float64 {
-	n := len(nums)
-	result := make([]float64, n-k+1)
-
-	maxHeap := &MaxHeap{} // Max-heap for the smaller half
-	minHeap := &MinHeap{} // Min-heap for the larger half
-	heap.Init(maxHeap)
-	heap.Init(minHeap)
-
-	for i := 0; i < n; i++ {
-		// Add the new element into the appropriate heap
-		if maxHeap.Len() == 0 || nums[i] <= maxHeap.MinHeap[0] {
-			heap.Push(maxHeap, nums[i])
-		} else {
-			heap.Push(minHeap, nums[i])
-		}
-
-		// Rebalance the heaps if necessary
-		if maxHeap.Len() > minHeap.Len()+1 {
-			heap.Push(minHeap, heap.Pop(maxHeap))
-		} else if minHeap.Len() > maxHeap.Len() {
-			heap.Push(maxHeap, heap.Pop(minHeap))
-		}
-
-		// Remove the element that is sliding out of the window
-		if i >= k {
-			elementToRemove := nums[i-k]
-			if elementToRemove <= maxHeap.MinHeap[0] {
-				removeElement(maxHeap, elementToRemove)
-			} else {
-				removeElement(minHeap, elementToRemove)
-			}
-
-			// Rebalance the heaps after removal
-			if maxHeap.Len() > minHeap.Len()+1 {
-				heap.Push(minHeap, heap.Pop(maxHeap))
-			} else if minHeap.Len() > maxHeap.Len() {
-				heap.Push(maxHeap, heap.Pop(minHeap))
-			}
-		}
-
-		// Add the median to the result when the window is fully formed
-		if i >= k-1 {
-			if maxHeap.Len() == minHeap.Len() {
-				result[i-k+1] = (float64(maxHeap.MinHeap[0]) + float64(minHeap.MinHeap[0])) / 2
-			} else {
-				result[i-k+1] = float64(maxHeap.MinHeap[0])
-			}
-		}
-	}
-
-	return result
-}
-
-func removeElement(h heap.Interface, elem int) {
-	for i := 0; i < h.Len(); i++ {
-		if (*h.(*MinHeap))[i] == elem {
-			heap.Remove(h, i)
-			return
-		}
-	}
-}
-
-func main() {
-	nums := []int{1, 3, -1, -3, 5, 3, 6, 7}
-	k := 3
-	fmt.Println(medianSlidingWindow(nums, k)) // Output: [1.00000,-1.00000,-1.00000,3.00000,5.00000,6.00000]
+func findMaximizedCapital(k int, W int, Profits []int, Capital []int) int {
+    n := len(Profits)
+    for k > 0 {
+        maxProfit := 0
+        index := -1
+        
+        for i := 0; i < n; i++ {
+            // Check if the project is feasible with the current capital
+            if Capital[i] <= W {
+                // Select the project which gives the maximum profit
+                if Profits[i] > maxProfit {
+                    maxProfit = Profits[i]
+                    index = i
+                }
+            }
+        }
+        
+        // If no feasible project is found, break the loop
+        if index == -1 {
+            break
+        }
+        
+        // Increase available capital by the profit of the chosen project
+        W += maxProfit
+        // We chose this project, so it's no longer available
+        Capital[index] = int(1e9+1) // Mark it as unavailable
+        k--
+    }
+    return W
 }
 ```
+
+#### Complexity Analysis:
+
+- **Time Complexity**: O(n * k), where n is the number of projects and `k` is the number of projects we are allowed to invest in. In the worst case, we are iterating over all projects `k` times.
+- **Space Complexity**: O(1), as we are not using any extra space except some variables.
+
+---
+
+### Greedy Approach with Priority Queue
+
+#### Intuition:
+
+This approach improves the brute force solution by utilizing a priority queue to efficiently access the most profitable project that can be selected with the current capital. The key idea is to maintain two arrays representing projects sorted by capital and profits to perform operations more efficiently.
+
+#### Approach:
+
+1. Pair the projects with their respective capital and map them into tuples.
+2. Sort the projects based on their capital requirement.
+3. Use a priority queue to keep track of the projects that can be completed with the current capital, sorting them by profit in descending order.
+4. Iterate over the number of projects we can choose (`k` times):
+    - While there are projects whose capital requirement is less than or equal to the available capital, add their profit to the priority queue.
+    - If no projects are available, break the loop.
+    - Pop the most profitable project from the priority queue and add its profit to the total available capital.
+5. Return the accumulated capital.
+
+#### Code:
+
+```go
+import "container/heap"
+
+type Project struct {
+    capital int
+    profit  int
+}
+
+type MaxHeap []int
+
+func (h MaxHeap) Len() int           { return len(h) }
+func (h MaxHeap) Less(i, j int) bool { return h[i] > h[j] }
+func (h MaxHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
+
+func (h *MaxHeap) Push(x interface{}) {
+    *h = append(*h, x.(int))
+}
+
+func (h *MaxHeap) Pop() interface{} {
+    old := *h
+    n := len(old)
+    x := old[n-1]
+    *h = old[0 : n-1]
+    return x
+}
+
+func findMaximizedCapital(k int, W int, Profits []int, Capital []int) int {
+    n := len(Profits)
+    projects := make([]Project, n)
+    for i := 0; i < n; i++ {
+        projects[i] = Project{Capital[i], Profits[i]}
+    }
+
+    sort.Slice(projects, func(i, j int) bool {
+        return projects[i].capital < projects[j].capital
+    })
+
+    maxHeap := &MaxHeap{}
+    heap.Init(maxHeap)
+
+    current := 0
+    for i := 0; i < k; i++ {
+        for current < n && projects[current].capital <= W {
+            heap.Push(maxHeap, projects[current].profit)
+            current++
+        }
+
+        if maxHeap.Len() == 0 {
+            break
+        }
+
+        W += heap.Pop(maxHeap).(int)
+    }
+
+    return W
+}
+```
+
+#### Complexity Analysis:
+
+- **Time Complexity**: O(n log n + k log n). Sorting projects by the capital takes O(n log n) and each operation on the max-heap takes O(log n). In the worst case, we push all projects once (O(n)) and pop `k` times.
+- **Space Complexity**: O(n), as we store all profits in a priority queue.
+
+These solutions progressively optimize the method of selecting the most feasible and profitable projects, utilizing sorting and priority queues for efficient selection.
 

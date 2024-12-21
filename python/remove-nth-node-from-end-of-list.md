@@ -1,43 +1,20 @@
-# Remove Nth Node From End of List
-Given the head of a linked list, remove the n-th node from the end of the list and return its head.
+# [Leetcode Problem 19: Remove Nth Node From End of List](https://leetcode.com/problems/remove-nth-node-from-end-of-list/)
 
-### Constraints:
-- The number of nodes in the list is sz (1 ≤ sz ≤ 30).
-- 0 <= Node.val <= 100
-- 1 <= n <= sz
+### Approaches:
+- [Approach 1: Two-pass algorithm](#approach-1-two-pass-algorithm)
+- [Approach 2: One-pass algorithm](#approach-2-one-pass-algorithm)
 
-### Examples
-```javascript
-Input: head = [1,2,3,4,5], n = 2
-Output: [1,2,3,5]
-Explanation: The 2nd node from the end is 4, so it gets removed.
+## Approach 1: Two-pass algorithm
 
-Input: head = [1], n = 1
-Output: []
-Explanation: The only node in the list is removed.
+### Intuition:
+The idea behind this approach is straightforward: 
+1. First, traverse the entire linked list to determine its length.
+2. Calculate the position of the node to remove starting from the head.
+3. Traverse the list again, stopping just before the node to remove, and adjust pointers to skip it.
 
-Input: head = [1,2], n = 1
-Output: [1]
-```
+This approach uses two passes: one to compute the length, another to reach the target node.
 
-## Approaches to Solve the Problem
-### Approach 1: Two-Pass Solution (Finding Length First)
-##### Intuition:
-The simplest approach is to first calculate the length of the linked list and then remove the (length - n)-th node from the beginning.
-
-1. Traverse the list to find the total length.
-2. Calculate the position of the node from the start: length - n.
-3. Traverse the list again to this position and remove the node.
-
-Steps:
-1. Traverse the list to find its length.
-2. Traverse the list again, and stop at the node just before the (length - n)-th node.
-3. Adjust the next pointer of the previous node to remove the n-th node.
-##### Time Complexity:
-O(L), where L is the length of the linked list. We traverse the list twice.
-##### Space Complexity:
-O(1), as we only use a few extra variables.
-##### Python Code:
+### Implementation:
 ```python
 class ListNode:
     def __init__(self, val=0, next=None):
@@ -45,59 +22,46 @@ class ListNode:
         self.next = next
 
 def removeNthFromEnd(head: ListNode, n: int) -> ListNode:
-    # Step 1: Find the total length of the list
+    # Step 1: Initialize a dummy node that points to the head to manage edge cases
+    dummy = ListNode(0, head)
+    
+    # Step 2: Determine the length of the linked list
     length = 0
-    current = head
-    while current:
+    first = head
+    while first:
         length += 1
-        current = current.next
+        first = first.next
     
-    # Step 2: Remove the (length - n)-th node
-    dummy = ListNode(0)
-    dummy.next = head
-    current = dummy
+    # Step 3: Find the length - n + 1 position (target node's predecessor's position)
+    length -= n
+    first = dummy
+    while length > 0:
+        length -= 1
+        first = first.next
+
+    # Step 4: Skip the target node (which is the nth node from the end)
+    first.next = first.next.next
     
-    for _ in range(length - n):
-        current = current.next
-    
-    # Skip the target node
-    current.next = current.next.next
-    
+    # Step 5: Return the new head, which might have changed if the first node was removed
     return dummy.next
 ```
-### Approach 2: One-Pass Solution with Two Pointers (Optimal Solution)
-##### Intuition: 
-To solve the problem in one pass, we can use two pointers. The idea is to maintain a gap of n nodes between two pointers: fast and slow. By the time fast reaches the end of the list, slow will be just before the node that needs to be removed.
+### Complexity Analysis:
+- **Time Complexity**: O(L), where L is the length of the linked list. We traverse the list twice.
+- **Space Complexity**: O(1), no extra space other than a few pointers.
 
-Steps:
-1. Initialize two pointers fast and slow to the dummy node.
-2. Move fast ahead by n nodes.
-3. Move both fast and slow one node at a time until fast reaches the end.
-4. Now, slow is at the node just before the node to be removed. Adjust the next pointer to skip the target node.
+## Approach 2: One-pass algorithm
 
-##### Visualization:
-```perl
-For head = [1,2,3,4,5] and n = 2:
+### Intuition:
+This optimal solution takes advantage of two pointers moving with different speeds:
+1. Start with a dummy node to easily handle edge cases.
+2. Use two pointers, `first` and `second`.
+   - Move `first` n+1 steps ahead to maintain a gap of n nodes with `second`.
+   - Move both pointers one step at a time until `first` reaches the end.
+3. `second` is now at the node just before the one to remove. Adjust pointers to skip the target node.
 
-Initially:
-fast -> 1 -> 2 -> 3 -> 4 -> 5
-slow -> 1 -> 2 -> 3 -> 4 -> 5
+This approach makes it possible to remove the target node with a single traversal.
 
-Move fast ahead by 2 steps:
-fast -> 3 -> 4 -> 5
-slow -> 1 -> 2 -> 3 -> 4 -> 5
-
-Move both pointers:
-fast -> 5
-slow -> 3 -> 4 -> 5
-
-Now, slow points to the node just before the node to remove (4). We skip 4.
-```
-##### Time Complexity:
-O(L), where L is the length of the linked list. We traverse the list only once.
-##### Space Complexity:
-O(1), as we only use constant extra space for the two pointers.
-##### Python Code:
+### Implementation:
 ```python
 class ListNode:
     def __init__(self, val=0, next=None):
@@ -105,39 +69,28 @@ class ListNode:
         self.next = next
 
 def removeNthFromEnd(head: ListNode, n: int) -> ListNode:
-    dummy = ListNode(0)
-    dummy.next = head
-    fast = dummy
-    slow = dummy
+    # Step 1: Initialize a dummy node
+    dummy = ListNode(0, head)
+    first = dummy
+    second = dummy
     
-    # Move fast n steps ahead
-    for _ in range(n):
-        fast = fast.next
+    # Step 2: Move the first pointer n + 1 steps ahead
+    for _ in range(n + 1):
+        first = first.next
     
-    # Move both fast and slow until fast reaches the end
-    while fast.next:
-        fast = fast.next
-        slow = slow.next
+    # Step 3: Move both pointers until first reaches the end
+    while first:
+        first = first.next
+        second = second.next
     
-    # Skip the target node
-    slow.next = slow.next.next
+    # Step 4: Skip the target node
+    second.next = second.next.next
     
+    # Step 5: Return the new head
     return dummy.next
 ```
-#### Edge Cases:
-1. Removing the Head Node:
-If n is equal to the length of the list, the node to be removed is the head. In such cases, we must handle the head carefully and return head.next.
 
-2. Single Node List:
-If the list contains only one node and n = 1, removing the only node results in an empty list.
+### Complexity Analysis:
+- **Time Complexity**: O(L), where L is the length of the linked list. We use a single traversal of the list.
+- **Space Complexity**: O(1), constant extra space is used for pointers.
 
-3. General Case:
-When n is in the middle or near the end of the list, the solution should work seamlessly.
-## Summary
-
-| Approach                         | Time Complexity | Space Complexity |
-|-----------------------------------|-----------------|------------------|
-| Two-Pass Solution (Length First)	                    | O(L)      | O(1)             |
-| One-Pass Solution (Two Pointers)	                          | O(L)            | O(1)             |
-
-The One-Pass Solution (Two Pointers) is the most optimal approach since it achieves the result in a single traversal of the linked list with constant space usage.

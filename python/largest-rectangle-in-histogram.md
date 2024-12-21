@@ -1,125 +1,84 @@
-# Largest Rectangle in Histogram
-Given an array of integers heights representing the histogram's bar heights where the width of each bar is 1, return the area of the largest rectangle in the histogram.
+# [Leetcode 84: Largest Rectangle in Histogram](https://leetcode.com/problems/largest-rectangle-in-histogram/)
 
-### Constraints:
-- 1 <= heights.length <= 10^5
-- 0 <= heights[i] <= 10^4
+## Approaches
+- [Brute Force Approach](#brute-force-approach)
+- [Stack-Based Approach](#stack-based-approach)
 
-### Examples
-```javascript
-Input: heights = [2,1,5,6,2,3]
-Output: 10
-Explanation: The largest rectangle is formed by the bars of heights [5,6] with width 2, giving area 5 * 2 = 10.
+### Brute Force Approach
 
-Input: heights = [2,4]
-Output: 4
-Explanation: The largest rectangle is the single bar of height 4 with width 1, giving area 4 * 1 = 4.
-```
+#### Intuition
+The brute force approach involves iterating over every pair of bars as a possible base for a rectangle and calculating the area between them. By checking each potential rectangle, we ensure that we are considering all possible subarrays. 
 
-## Approaches to Solve the Problem
-### Approach 1: Brute Force (Inefficient)
-##### Intuition:
-For every bar, we can try to expand the rectangle to the left and right until we hit a bar that is shorter. For each bar, calculate the maximum rectangle that can be formed using that bar as the shortest. This involves calculating the width that extends as far as we can to the left and right for each bar.
+For each bar, consider it as the left boundary of the rectangle, and iterate through the subsequent bars to find the minimum height of the rectangle while updating the maximum area.
 
-Steps:
-1. For each bar at index i, check how far left and right you can extend while maintaining the rectangle height.
-2. For every bar, compute the rectangle area, then return the maximum area found.
-##### Time Complexity:
-O(n²), where n is the number of bars. For each bar, we iterate left and right to find the largest rectangle.
-##### Space Complexity:
-O(1), because we only use a few variables to track the maximum area.
-##### Python Code:
+#### Implementation
+
 ```python
 def largestRectangleArea(heights):
     n = len(heights)
     max_area = 0
     
+    # Try each bar as the starting point
     for i in range(n):
-        height = heights[i]
-        left = i
-        right = i
+        min_height = heights[i]
         
-        # Extend to the left
-        while left > 0 and heights[left - 1] >= height:
-            left -= 1
-        
-        # Extend to the right
-        while right < n - 1 and heights[right + 1] >= height:
-            right += 1
-        
-        # Calculate area with heights[i] as the smallest bar
-        max_area = max(max_area, height * (right - left + 1))
+        # Extend the rectangle to the right
+        for j in range(i, n):
+            min_height = min(min_height, heights[j])
+            
+            # Calculate area with (i, j) as boundaries
+            max_area = max(max_area, min_height * (j - i + 1))
     
     return max_area
 ```
 
-### Approach 2: Stack-based Monotonic Approach (Optimal Solution)
-##### Intuition: 
-The brute-force approach is inefficient because we repeatedly scan for the largest rectangle for each bar. Instead, we can optimize the process using a monotonic stack. The idea is to calculate the next smaller bar on both the left and right of each bar in the histogram, as this helps determine the largest possible rectangle that can be formed using each bar.
+#### Time and Space Complexity
+- **Time Complexity**: O(n^2), where n is the number of bars. We consider each pair of bars.
+- **Space Complexity**: O(1), as no additional data structures are used besides a few variables.
 
-A monotonic stack can help efficiently keep track of indices of bars in the histogram. As we iterate through the bars:
-- If the current bar is shorter than the bar at the top of the stack, we can calculate the area with the bar at the top as the height.
-- We continue popping from the stack until we find a shorter bar or the stack becomes empty.
+### Stack-Based Approach
 
-Steps:
-1. Initialize an empty stack to store indices of bars and a variable max_area to track the largest area.
-2. Traverse the array of heights.
-3. For each bar:
-   - While the stack is not empty and the current bar is smaller than the bar at the top of the stack:
-     - Pop the top index and calculate the area of the rectangle with the popped height as the smallest bar.
-     - Update max_area with the calculated area.
-4. After the loop, pop remaining bars from the stack and calculate their areas.
-5. Return max_area.
-### Visualization
-For heights = [2, 1, 5, 6, 2, 3]:
+#### Intuition
+The stack-based approach leverages a stack to efficiently find the nearest smaller bar to the left and right of each bar. We'll use the stack to keep track of indices of the bars in a way that helps easily calculate maximum rectangles. The idea is to iterate through each bar, push its index onto the stack as long as it is taller than the bar at the previous index. When we find a bar shorter than the one on top of the stack, we calculate the area with the bar at the current top of the stack as the smallest height since it could potentially extend the rectangle bounded by the previous smaller elements on the left and right.
 
-```rust
-Stack process:
-- Day 0: 2 → push index 0 to the stack.
-- Day 1: 1 is smaller → pop index 0 (height 2), area = 2 × 1 → max_area = 2 → push index 1.
-- Day 2: 5 → push index 2 to the stack.
-- Day 3: 6 → push index 3 to the stack.
-- Day 4: 2 is smaller → pop index 3 (height 6), area = 6 × 1 → max_area = 6 → pop index 2 (height 5), area = 5 × 2 → max_area = 10 → push index 4.
-- Day 5: 3 → push index 5 to the stack.
+#### Implementation
 
-Final pops calculate the remaining areas.
-```
-##### Time Complexity:
-O(n), where n is the number of bars. Each bar is pushed and popped from the stack at most once.
-##### Space Complexity:
-O(n), for the stack that stores the indices of bars.
-##### Python Code:
 ```python
 def largestRectangleArea(heights):
-    stack = []
     max_area = 0
-    n = len(heights)
+    stack = []  # stack to store indices of the bars
     
-    for i in range(n):
+    # Iterate over all bars
+    for i in range(len(heights)):
+        
+        # If we encounter a bar that is smaller than the bar at the index
+        # stored on top of the stack, we have to pop the stack and calculate area
         while stack and heights[stack[-1]] > heights[i]:
-            h = heights[stack.pop()]
+            # Pop the top element as it is no longer the smallest element
+            height = heights[stack.pop()]
+            
+            # Calculate the width of the rectangle with that height
+            # If stack is empty, it can extend back to start
             width = i if not stack else i - stack[-1] - 1
-            max_area = max(max_area, h * width)
+            
+            # Calculate area and update max_area
+            max_area = max(max_area, height * width)
+        
+        # Push the current index to the stack
         stack.append(i)
     
-    # Calculate areas for remaining bars in the stack
+    # Clean up the remaining stack elements
     while stack:
-        h = heights[stack.pop()]
-        width = n if not stack else n - stack[-1] - 1
-        max_area = max(max_area, h * width)
-    
+        height = heights[stack.pop()]
+        width = len(heights) if not stack else len(heights) - stack[-1] - 1
+        max_area = max(max_area, height * width)
+
     return max_area
 ```
-### Edge Cases:
-1. Empty Array: If heights is empty, the largest rectangle area should be 0.
-2. Single Element: If heights has only one bar, the largest rectangle area is the height of that bar.
-3. All Bars of the Same Height: If all bars are the same height, the largest rectangle is the entire histogram with an area of height * number_of_bars.
-4. Decreasing Heights: If the heights are strictly decreasing, the stack will be emptied at each new bar, resulting in the largest rectangle being the first bar.
-## Summary
 
-| Approach                         | Time Complexity | Space Complexity |
-|-----------------------------------|-----------------|------------------|
-| Brute Force                        | O(n²)      | O(1)             |
-| Stack-based Solution (Optimal)                          | O(n)            | O(n)             |
+#### Time and Space Complexity
+- **Time Complexity**: O(n), as each bar is pushed and popped from the stack at most once.
+- **Space Complexity**: O(n), due to the use of the stack to store indices.
 
-The Stack-based Monotonic approach is the most efficient solution. It processes the bars in linear time by leveraging the stack to compute the largest rectangle that includes each bar as the shortest.
+By using these methods, you can solve the "Largest Rectangle in Histogram" problem with varying degrees of efficiency, with the stack-based approach being the optimal solution in terms of time complexity.
+

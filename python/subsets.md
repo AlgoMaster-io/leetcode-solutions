@@ -1,66 +1,67 @@
-# 78. [Subsets](https://leetcode.com/problems/subsets/)
+[**Leetcode Problem 78: Subsets**](https://leetcode.com/problems/subsets/)
 
-## Approach 1: Iterative (Power Set)
+**Approaches:**
+- [Approach 1: Cascading](#approach-1-cascading)
+- [Approach 2: Backtracking](#approach-2-backtracking)
 
-### Solution
+## Approach 1: Cascading
+
+### Intuition:
+The cascading approach iteratively builds all possible subsets. The idea is to start with an empty subset and keep adding each number one by one to all existing subsets. This method exploits the fact that given a set, you can always create a new subset by adding a new element to each subset of the existing subsets.
+
+### Detailed Code:
+
 ```python
-# Time Complexity: O(n * 2^n), where n is the number of elements
-# Space Complexity: O(n * 2^n) for storing the subsets
+def subsets(nums):
+    # Start with an empty subset
+    result = [[]]
+    
+    # Process each number in the input list
+    for num in nums:
+        # For each current subset, create a new subset by adding the current number
+        result += [current_subset + [num] for current_subset in result]
 
-class Solution:
-    def subsets(self, nums):
-        result = [[]]  # Start with the empty subset
-
-        for num in nums:
-            size = len(result)
-            for i in range(size):
-                subset = result[i] + [num]  # Add the current number to each existing subset
-                result.append(subset)
-
-        return result
+    return result
 ```
 
-## Approach 2: Backtracking (Recursive Subset Generation)
+### Time and Space Complexity:
+- **Time Complexity**: O(N * 2^N)  
+  We generate each subset by iterating through the available numbers and expanding the list of subsets.
+- **Space Complexity**: O(N * 2^N)  
+  The number of elements in the result grows exponentially with the size of the input due to the expanding subsets.
 
-### Solution
+## Approach 2: Backtracking
+
+### Intuition:
+Backtracking is a classic algorithmic technique for solving problems incrementally, considering one piece at a time and removing solutions that fail to satisfy the problem constraints. Here, it systematically builds the subsets by choosing or not choosing each element, exploring all possibilities.
+
+### Detailed Code:
+
 ```python
-# Time Complexity: O(n * 2^n), where n is the number of elements
-# Space Complexity: O(n) for the recursion stack
+def subsets(nums):
+    def backtrack(start, current_subset):
+        # Add the current subset (which might be at any depth)
+        result.append(list(current_subset))
+        
+        # Explore further elements to be added
+        for i in range(start, len(nums)):
+            # Include the number nums[i] in the subset
+            current_subset.append(nums[i])
+            # Move on to the next element with the updated current_subset
+            backtrack(i + 1, current_subset)
+            # Backtrack: remove the last element and explore other possibilities
+            current_subset.pop()
 
-class Solution:
-    def subsets(self, nums):
-        result = []
-        self.backtrack(nums, 0, [], result)
-        return result
-
-    def backtrack(self, nums, index, current, result):
-        result.append(list(current))  # Add the current subset to the result
-
-        for i in range(index, len(nums)):
-            current.append(nums[i])  # Include nums[i] in the current subset
-            self.backtrack(nums, i + 1, current, result)  # Recurse with the next index
-            current.pop()  # Backtrack to explore other subsets
+    result = []
+    backtrack(0, [])
+    return result
 ```
 
-## Approach 3: Bitmasking (Iterative Subset Generation)
+### Time and Space Complexity:
+- **Time Complexity**: O(N * 2^N)  
+  We call the recursive function for each subset. In the worst-case scenario, the function generates all subsets (which amounts to 2^N subsets).
+- **Space Complexity**: O(N)  
+  In terms of additional space used, the maximum depth of recursion is N, and the extra space is primarily due to recursion stack storage.
 
-### Solution
-```python
-# Time Complexity: O(n * 2^n), where n is the number of elements
-# Space Complexity: O(n * 2^n) for storing the subsets
-
-class Solution:
-    def subsets(self, nums):
-        result = []
-        total_subsets = 1 << len(nums)  # Total subsets = 2^n
-
-        for mask in range(total_subsets):
-            subset = []
-            for i in range(len(nums)):
-                if (mask & (1 << i)) != 0:
-                    subset.append(nums[i])  # Include nums[i] in the subset
-            result.append(subset)
-
-        return result
-```
+Both methods effectively explore all subsets, with slight differences in strategy — one iteratively, and the other recursively. The choice between them could depend on personal preference, readability, or other constraints.
 

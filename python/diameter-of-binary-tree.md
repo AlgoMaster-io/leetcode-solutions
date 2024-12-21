@@ -1,143 +1,109 @@
-# Diameter of Binary Tree
-Given the root of a binary tree, return the length of the diameter of the tree.
+# [Diameter of Binary Tree - Leetcode 543](https://leetcode.com/problems/diameter-of-binary-tree/)
 
-The diameter of a binary tree is the length of the longest path between any two nodes in a tree. This path may or may not pass through the root.
+## Approaches:
+- [Approach 1: Brute Force](#approach-1-brute-force)
+- [Approach 2: Optimized DFS](#approach-2-optimized-dfs)
 
-The length of a path between two nodes is represented by the number of edges between them.
+---
 
-### Constraints:
-- The number of nodes in the tree is in the range [1, 10^4].
-- -100 <= Node.val <= 100
+## Approach 1: Brute Force
 
-### Examples
-```javascript
-Input: root = [1,2,3,4,5]
-Output: 3
-Explanation: The path [4,2,1,3] or [5,2,1,3] has 3 edges.
+### Intuition
+The diameter of the binary tree is the length of the longest path between any two nodes in the tree. This path may or may not pass through the root. The brute force approach computes the diameter of the binary tree by evaluating the maximum path which can be computed for every node. For each node, calculate the height of the left and right subtrees and sum them up to consider that path as the potential diameter. This path sum is computed at every node to identify the maximum path among any two nodes in the tree.
 
-Input: root = [1,2]
-Output: 1
-```
+### Steps:
+1. Define a `height()` function that calculates the height of a given binary tree node recursively.
+2. Traverse the tree for each node. For each node, compute the path that links the left and right subtrees.
+3. Use the path length calculated at each node to assess if it's the longest diameter possible.
+4. Return the maximum computed diameter.
 
-## Approaches to Solve the Problem
-### Approach 1: Recursive DFS (Depth-First Search)
-##### Intuition:
-The diameter of a binary tree at any node is the sum of the heights (depths) of its left and right subtrees. Thus, the longest path through any node is the sum of the maximum depths of its left and right children.
-
-We can solve this problem recursively using DFS. As we calculate the height of each subtree, we can also compute the diameter at each node by summing the heights of the left and right subtrees.
-
-Steps:
-1. For each node, the diameter is the sum of the depths of the left and right subtrees.
-2. We use a helper function depth to recursively compute the depth of the tree.
-3. While calculating the depth of each subtree, we also update the global maximum diameter (self.max_diameter).
-4. The final diameter will be the maximum diameter found during the recursive traversal.
-
-Key Concepts:
-- Height of a node: The length of the longest path from the node to a leaf.
-- Diameter at a node: The sum of the heights of its left and right subtrees.
-##### Visualization:
-For the tree:
-
-```rust
-      1
-     / \
-    2   3
-   / \
-  4   5
-
-The height of node 2 is max(1,1) + 1 = 2, and the height of node 1 is max(2,1) + 1 = 3. The diameter at node 1 is 2 + 1 = 3, which is the longest path in the tree.  
-```
-##### Time Complexity:
-O(n), where n is the number of nodes in the tree. We visit each node exactly once to compute its height and diameter.
-##### Space Complexity:
-O(h), where h is the height of the tree. The space is used by the recursion stack, and the maximum depth of the recursion stack is the height of the tree. In the worst case (skewed tree), the height could be n.
-##### Python Code:
+### Code
 ```python
-# Definition for a binary tree node.
 class TreeNode:
-    def __init__(self, val=0, left=None, right=None):
-        self.val = val
-        self.left = left
-        self.right = right
+    def __init__(self, x):
+        self.val = x
+        self.left = None
+        self.right = None
 
-class Solution:
-    def diameterOfBinaryTree(self, root: TreeNode) -> int:
-        # To store the maximum diameter
-        self.max_diameter = 0
-
-        # Helper function to calculate the depth of the tree
-        def depth(node):
-            if not node:
-                return 0
-            # Recursively calculate the height of the left and right subtrees
-            left_depth = depth(node.left)
-            right_depth = depth(node.right)
-            
-            # The diameter at the current node is the sum of left_depth and right_depth
-            self.max_diameter = max(self.max_diameter, left_depth + right_depth)
-            
-            # Return the height of the node (1 + max depth of left or right subtree)
-            return max(left_depth, right_depth) + 1
-
-        # Start the depth calculation
-        depth(root)
-        
-        # The maximum diameter found during the traversal
-        return self.max_diameter
-```
-### Approach 2: Iterative DFS with Stack (Non-Recursive)
-##### Intuition:
-We can implement the same DFS logic iteratively using a stack, which allows us to avoid recursion and explicitly manage the stack.
-
-Steps:
-1. Initialize a stack to simulate the recursive traversal.
-2. Use a dictionary to store the depths of the nodes as they are computed.
-3. For each node, after computing the depths of its left and right subtrees, calculate the diameter at that node.
-4. Track the maximum diameter during the traversal.
-##### Time Complexity:
-O(n), where n is the number of nodes, because we visit each node exactly once.
-##### Space Complexity:
-O(n), due to the stack and the dictionary used to store node depths.
-##### Python Code:
-```python
-class Solution:
-    def diameterOfBinaryTree(self, root: TreeNode) -> int:
-        if not root:
+def diameterOfBinaryTree(root: TreeNode) -> int:
+    def height(node):
+        # A null node has height 0
+        if not node:
             return 0
-        
-        stack = [(root, False)]  # (node, visited)
-        depths = {}
-        max_diameter = 0
-        
-        while stack:
-            node, visited = stack.pop()
-            
-            if node:
-                if visited:
-                    # When visiting the node again, calculate the depth
-                    left_depth = depths.get(node.left, 0)
-                    right_depth = depths.get(node.right, 0)
-                    depths[node] = max(left_depth, right_depth) + 1
-                    
-                    # Update the max diameter
-                    max_diameter = max(max_diameter, left_depth + right_depth)
-                else:
-                    # First time visiting the node: add it back as visited
-                    stack.append((node, True))
-                    # Then add left and right children to the stack
-                    stack.append((node.right, False))
-                    stack.append((node.left, False))
-        
-        return max_diameter
+        # Compute the height of each subtree
+        left_height = height(node.left)
+        right_height = height(node.right)
+        # The height of the node is the greater of the two subtrees' heights plus one for the current node
+        return 1 + max(left_height, right_height)
+    
+    def maxDiameter(node):
+        # Base condition: if node is null, diameter is 0
+        if not node:
+            return 0
+        # Sum the heights of the left and right children nodes
+        left_height = height(node.left)
+        right_height = height(node.right)
+        # Compute diameter through this node
+        current_diameter = left_height + right_height
+        # Calculate diameter in the subtrees
+        left_diameter = maxDiameter(node.left)
+        right_diameter = maxDiameter(node.right)
+        # Maximum of both the current diameter through this node and the maximum child diameter
+        return max(current_diameter, left_diameter, right_diameter)
+    
+    return maxDiameter(root)
 ```
-### Edge Cases
-1. Single Node: If the tree has only one node, the diameter is 0 since there are no edges.
-2. Linear Tree: If the tree is completely unbalanced (like a linked list), the diameter will be the number of nodes minus one, which is the height of the tree.
-3. Empty Tree: If the tree is empty, the diameter should be 0.
-### Summary
-| Approach                         | Time Complexity | Space Complexity |
-|-----------------------------------|-----------------|------------------|
-| Recursive DFS (Depth Calculation)			      | O(n)      | O(h)             |
-| Iterative DFS with Stack			      | O(n)      | O(n)             |
 
-The Recursive DFS approach is the most intuitive and efficient for this problem. It calculates the diameter in a single traversal by computing the height of each subtree while maintaining a global diameter value.
+### Complexity
+- **Time Complexity**: O(N^2), where N is the number of nodes in the tree. We recalculated height for each node.
+- **Space Complexity**: O(H), where H is the height of the tree due to the recursion stack.
+
+---
+
+## Approach 2: Optimized DFS
+
+### Intuition
+Instead of recalculating the height of each node's subtree multiple times, we can opt for an optimized depth-first search which calculates both the diameter and height in the same traversal. We leverage a single traversal to compute the diameter passing through every node, maintaining a global variable to track the maximum diameter observed.
+
+### Steps:
+1. Define a recursive DFS function that computes both the diameter through the node and returns the height of the node.
+2. For each node, compute the height of the subtrees. The diameter passing through that node is given by adding these heights.
+3. Update the global maximum diameter whenever a larger diameter is found.
+4. Return the computed maximum diameter after a complete traversal.
+
+### Code
+```python
+class TreeNode:
+    def __init__(self, x):
+        self.val = x
+        self.left = None
+        self.right = None
+
+def diameterOfBinaryTree(root: TreeNode) -> int:
+    def dfs(node):
+        nonlocal max_diameter
+        if not node:
+            return 0  # Base case: return 0 for null nodes
+        
+        # Postorder traversal, calculate height of left subtree
+        left_height = dfs(node.left)
+        # Calculate height of right subtree
+        right_height = dfs(node.right)
+
+        # Calculate diameter through this node as sum of heights of left and right
+        max_diameter = max(max_diameter, left_height + right_height)
+
+        # Return height of current node
+        return 1 + max(left_height, right_height)
+    
+    max_diameter = 0
+    dfs(root)
+    return max_diameter
+```
+
+### Complexity
+- **Time Complexity**: O(N), where N is the number of nodes in the tree. Each node is visited once.
+- **Space Complexity**: O(H), where H is the height of the tree due to the recursion stack.
+
+This approach is optimal since it reduces redundant calculations of subtree heights, achieving a time complexity proportional to the number of nodes.
+
