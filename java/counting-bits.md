@@ -1,23 +1,9 @@
 # [Leetcode 338: Counting Bits](https://leetcode.com/problems/counting-bits/)
 
 ## Approaches
-- [Leetcode 338: Counting Bits](#leetcode-338-counting-bits)
-  - [Approaches](#approaches)
-    - [Approach 1: Naive Approach](#approach-1-naive-approach)
-      - [Intuition](#intuition)
-      - [Code](#code)
-      - [Time Complexity](#time-complexity)
-      - [Space Complexity](#space-complexity)
-    - [Approach 2: DP with Last Significant Bit](#approach-2-dp-with-last-significant-bit)
-      - [Intuition](#intuition-1)
-      - [Code](#code-1)
-      - [Time Complexity](#time-complexity-1)
-      - [Space Complexity](#space-complexity-1)
-    - [Approach 3: DP with Highest Power of Two](#approach-3-dp-with-highest-power-of-two)
-      - [Intuition](#intuition-2)
-      - [Code](#code-2)
-      - [Time Complexity](#time-complexity-2)
-      - [Space Complexity](#space-complexity-2)
+- [Approach 1: Naive Approach](#approach-1-naive-approach)
+- [Approach 2: DP with Last Significant Bit](#approach-2-dp-with-last-significant-bit)
+- [Approach 3: DP with Highest Power of Two](#approach-3-dp-with-highest-power-of-two)
 
 ---
 
