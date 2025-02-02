@@ -84,17 +84,16 @@ We can fine-tune our previous two-pointer approach by swapping in place. We iter
 #### Java Code:
 ```java
 public void moveZeroes(int[] nums) {
-    int lastZeroPosition = 0; // This marks the last zero swap position
-
-    // Loop through the array
-    for (int current = 0; current < nums.length; current++) {
-        if (nums[current] != 0) {
-            // Perform the swap
-            int temp = nums[lastZeroPosition];
-            nums[lastZeroPosition] = nums[current];
-            nums[current] = temp;
-            lastZeroPosition++;
+    int index = 0;
+    // First pass - move all non-zero numbers to front
+    for(int num: nums) {
+        if(num != 0) {
+            nums[index++] = num;
         }
+    }
+    // Second pass - fill remaining with zeros
+    while(index < nums.length) {
+        nums[index++] = 0;
     }
 }
 ```
