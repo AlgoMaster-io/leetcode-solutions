@@ -37,16 +37,6 @@ std::vector<int> singleNumber(std::vector<int>& nums) {
 
     return result;
 }
-
-int main() {
-    std::vector<int> nums = {1, 2, 1, 3, 2, 5};
-    std::vector<int> result = singleNumber(nums);
-    std::cout << "The numbers that appear once are: ";
-    for (int num : result) {
-        std::cout << num << " ";
-    }
-    return 0;
-}
 ```
 
 ### Time Complexity: 
@@ -82,7 +72,7 @@ std::vector<int> singleNumber(std::vector<int>& nums) {
     }
 
     // Find rightmost set bit different between two unique numbers
-    int rightmost_set_bit = xor_all & -xor_all;
+    unsigned int rightmost_set_bit = xor_all & -static_cast<unsigned int>(xor_all);
 
     int num1 = 0, num2 = 0;
 
@@ -97,21 +87,11 @@ std::vector<int> singleNumber(std::vector<int>& nums) {
 
     return {num1, num2};
 }
-
-int main() {
-    std::vector<int> nums = {1, 2, 1, 3, 2, 5};
-    std::vector<int> result = singleNumber(nums);
-    std::cout << "The numbers that appear once are: ";
-    for (int num : result) {
-        std::cout << num << " ";
-    }
-    return 0;
-}
 ```
-
 ### Time Complexity: 
 - O(n), where n is the number of elements in the vector. Each element is processed a constant number of times.
 
 ### Space Complexity: 
 - O(1), as we are using fixed extra space regardless of input size.
+
 
