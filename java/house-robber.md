@@ -52,7 +52,7 @@ To optimize the recursive approach, we can use memoization to store the results 
 ```java
 class Solution {
     public int rob(int[] nums) {
-        int[] memo = new int[nums.length + 1];
+        int[] memo = new int[nums.length];
         Arrays.fill(memo, -1);
         return robFrom(0, nums, memo);
     }
