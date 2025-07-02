@@ -73,7 +73,7 @@ Using dynamic programming, we fill an array with the minimum costs from the base
 ```python
 def minCostClimbingStairs(cost):
     n = len(cost)
-    dp = [0] * (n + 1)
+    dp = [0] * (n + 2)
     
     # Start calculating the minimum cost from the top to the base.
     for i in range(n - 1, -1, -1):
