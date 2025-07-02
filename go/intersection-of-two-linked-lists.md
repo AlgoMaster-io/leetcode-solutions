@@ -92,8 +92,17 @@ func getIntersectionNode(headA, headB *ListNode) *ListNode {
     // Both pointers move through both lists
     for a != b {
         // When reaching the end of a list, switch to the head of the other list
-        a = if a == nil { headB } else { a.Next }
-        b = if b == nil { headA } else { b.Next }
+        if a == nil {
+            a = headB
+        } else {
+            a = a.Next
+        }
+        
+        if b == nil {
+            b = headA
+        } else {
+            b = b.Next
+        }
     }
     
     return a // or b, both are the intersection node or nil if no intersection
